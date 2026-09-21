@@ -1,0 +1,38 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8088:80"
+    volumes:
+      - .:/var/www/app
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8088
+      APP_KEY: local-development-key-not-for-production-0000
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: arcadeos
+      DB_USER: arcadeos
+      DB_PASSWORD: arcadeos
+      TEST_DB_NAME: arcadeos_test
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: arcadeos
+      MARIADB_USER: arcadeos
+      MARIADB_PASSWORD: arcadeos
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  dbdata: {}

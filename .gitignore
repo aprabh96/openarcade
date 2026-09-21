@@ -5,8 +5,10 @@
 !/storage/logs/.gitkeep
 !/storage/cache/.gitkeep
 /.phpunit.cache/
+/.phpstan.cache/
 /.php-cs-fixer.cache
 /node_modules/
+/tools/denylist.local.sha256
 .DS_Store
 Thumbs.db
 *.log
