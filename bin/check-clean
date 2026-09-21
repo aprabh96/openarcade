@@ -1,0 +1,57 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use ArcadeOS\Tools\CleanScanner;
+
+$root = dirname(__DIR__);
+chdir($root);
+
+$readList = static function (string $path): array {
+    if (!is_file($path)) {
+        return [];
+    }
+    $lines = array_map('trim', file($path, FILE_IGNORE_NEW_LINES) ?: []);
+
+    return array_values(array_filter($lines, static fn (string $l): bool => $l !== '' && $l[0] !== '#'));
+};
+
+$scanner = new CleanScanner(
+    $readList($root . '/tools/denylist.local.sha256'),
+    $readList($root . '/tools/clean-allowlist.txt'),
+);
+
+$files = [];
+exec('git ls-files --cached --others --exclude-standard', $files, $code);
+if ($code !== 0) {
+    fwrite(STDERR, "check-clean: git ls-files failed\n");
+    exit(2);
+}
+
+$skipNames = ['composer.lock', 'package-lock.json'];
+$skipExtensions = ['png', 'jpg', 'jpeg', 'gif', 'ico', 'webp', 'woff', 'woff2', 'pdf', 'zip'];
+$total = 0;
+foreach ($files as $file) {
+    if (in_array(basename($file), $skipNames, true)) {
+        continue;
+    }
+    if (in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), $skipExtensions, true)) {
+        continue;
+    }
+    if (!is_file($file) || filesize($file) > 2_000_000) {
+        continue;
+    }
+    foreach ($scanner->scanText($file, (string) file_get_contents($file)) as $finding) {
+        $total++;
+        fwrite(STDERR, sprintf("%s:%d [%s] %s\n", $finding->file, $finding->line, $finding->rule, $finding->preview));
+    }
+}
+
+if ($total > 0) {
+    fwrite(STDERR, "check-clean: {$total} problem(s). Remove them, or add an exact string to tools/clean-allowlist.txt with a reason.\n");
+    exit(1);
+}
+echo "check-clean: OK (" . count($files) . " files)\n";
