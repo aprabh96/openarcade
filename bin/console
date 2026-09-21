@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use ArcadeOS\Console\Application;
+use ArcadeOS\Db\Connection;
+use ArcadeOS\Support\Config;
+use ArcadeOS\Support\SystemClock;
+
+$root = dirname(__DIR__);
+try {
+    $pdo = Connection::fromConfig(Config::load($root));
+} catch (\Throwable $error) {
+    fwrite(STDERR, 'Cannot connect to the database. Check DB_* in .env. ' . $error->getMessage() . "\n");
+    exit(2);
+}
+
+exit((new Application($pdo, $root . '/migrations', new SystemClock(), static function (string $line): void {
+    echo $line . "\n";
+}))->run($argv));
