@@ -57,6 +57,10 @@ final class Application
             ($this->write)('Error: ' . $error->getMessage());
 
             return 1;
+        } catch (\PDOException $error) {
+            ($this->write)('Database error: ' . $error->getMessage());
+
+            return 1;
         }
     }
 

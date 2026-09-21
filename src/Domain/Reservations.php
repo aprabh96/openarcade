@@ -236,6 +236,6 @@ final class Reservations
 
     public function expireHolds(): int
     {
-        return $this->reservations->expireHolds($this->clock->now());
+        return Transaction::run($this->pdo, fn (): int => $this->reservations->expireHolds($this->clock->now()));
     }
 }

@@ -35,4 +35,12 @@ final class MigrationTest extends TestCase
         $query = $pdo->query('SELECT @@session.time_zone');
         self::assertSame('+00:00', $query === false ? null : $query->fetchColumn());
     }
+
+    public function testReservationsHasAnIndexForTheHoldSweep(): void
+    {
+        $pdo = TestDb::fresh();
+        $query = $pdo->query('SHOW INDEX FROM reservations');
+        $names = $query === false ? [] : array_column($query->fetchAll(), 'Key_name');
+        self::assertContains('ix_reservations_status_hold', $names);
+    }
 }

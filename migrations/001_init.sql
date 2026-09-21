@@ -72,7 +72,8 @@ CREATE TABLE reservations (
   updated_at DATETIME NOT NULL,
   UNIQUE KEY uq_reservations_uuid (uuid),
   UNIQUE KEY uq_reservations_code (confirmation_code),
-  KEY ix_reservations_date_status (local_date, status)
+  KEY ix_reservations_date_status (local_date, status),
+  KEY ix_reservations_status_hold (status, hold_expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE reservation_stations (
