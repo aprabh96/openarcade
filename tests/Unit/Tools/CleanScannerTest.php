@@ -37,7 +37,7 @@ final class CleanScannerTest extends TestCase
     {
         $secret = 'Tr0ub4dor' . '-legacy-value';
         $scanner = new CleanScanner([hash('sha256', $secret)]);
-        $findings = $scanner->scanText('config.php', "\$dbPassword = '" . $secret . "';");
+        $findings = $scanner->scanText('config.php', "\$dbValue = '" . $secret . "';");
         self::assertSame(['denylist'], array_column($findings, 'rule'));
         self::assertStringNotContainsString($secret, $findings[0]->preview);
     }
@@ -53,5 +53,21 @@ final class CleanScannerTest extends TestCase
     {
         $text = "<?php\n\$price = 2500; // cents\n\$date = '2026-09-21';\n";
         self::assertSame([], (new CleanScanner())->scanText('a.php', $text));
+    }
+
+    public function testFlagsAGenericSecretAssignment(): void
+    {
+        $text = 'SMTP_PASSWORD=' . 'k9Xv' . 'Q2mL' . 'p7Rt' . 'z4Wn' . 'b8Hc';
+        $findings = (new CleanScanner())->scanText('a.env', $text);
+        self::assertSame(['generic_secret'], array_column($findings, 'rule'));
+    }
+
+    public function testGenericSecretRuleIgnoresPlaceholdersAndNonSecretLines(): void
+    {
+        $scanner = new CleanScanner();
+        self::assertSame([], $scanner->scanText('a.env', 'ARCADEOS_ADMIN_PASSWORD=local-dev-password-123'));
+        self::assertSame([], $scanner->scanText('a.md', '--admin-password=correct-horse-battery'));
+        self::assertSame([], $scanner->scanText('a.php', '$password = trim((string) fgets(STDIN));'));
+        self::assertSame([], $scanner->scanText('ci.yml', 'GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'));
     }
 }

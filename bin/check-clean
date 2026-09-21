@@ -3,6 +3,11 @@
 
 declare(strict_types=1);
 
+// tools/denylist.local.sha256 is a local, git-ignored aid for the maintainer: SHA-256 hashes of
+// strings that must never appear in this repo. It does nothing in CI or a fresh clone, since the
+// file is never committed there. gitleaks, run separately in CI, is the broad backstop that does
+// not depend on it.
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use ArcadeOS\Tools\CleanScanner;

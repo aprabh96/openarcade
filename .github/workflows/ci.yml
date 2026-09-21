@@ -35,6 +35,7 @@ jobs:
       - run: composer stan
       - run: composer test
       - run: composer clean-check
+      - run: composer audit
 
   secrets:
     runs-on: ubuntu-latest

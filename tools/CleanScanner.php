@@ -18,6 +18,8 @@ final class CleanScanner
     private const EMAIL = '/[A-Za-z0-9._%+\-]+@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})/';
     private const PHONE = '/(?<![\d.\-])(?:\+?1[\s\-.])?\(?\d{3}\)?[\s\-.]\d{3}[\s\-.]\d{4}(?![\d\-])/';
     private const FICTIONAL_PHONE = '/555[\s\-.]01\d\d/';
+    private const GENERIC_SECRET = '/(?i)\b[a-z0-9_\-]*(?:password|passwd|secret|token|api[_\-]?key|private[_\-]?key)[a-z0-9_]*[\'"]?\s*(?:=>|=|:)\s*[\'"]?([A-Za-z0-9\/+=_\-]{16,})/';
+    private const PLACEHOLDER_HINT = '/(?i)example|local|change|dummy|test|your|placeholder|xxxx/';
     private const ALLOWED_EMAIL_DOMAINS = ['example.com', 'example.org', 'example.net', 'arcade.test'];
     private const TOKEN = '/[A-Za-z0-9_\-\.\+\/=\^%\$#@!~\*]{8,}/';
 
@@ -55,6 +57,14 @@ final class CleanScanner
                 foreach ($m[0] as $match) {
                     if (!preg_match(self::FICTIONAL_PHONE, $match)) {
                         $this->add($findings, $file, $lineNo, 'phone', $match);
+                    }
+                }
+            }
+            if (preg_match_all(self::GENERIC_SECRET, $line, $m)) {
+                foreach ($m[1] as $captured) {
+                    $looksLikeASecret = preg_match('/\d/', $captured) === 1 && preg_match('/[A-Za-z]/', $captured) === 1;
+                    if ($looksLikeASecret && preg_match(self::PLACEHOLDER_HINT, $captured) !== 1) {
+                        $this->add($findings, $file, $lineNo, 'generic_secret', $captured);
                     }
                 }
             }
