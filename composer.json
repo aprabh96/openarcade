@@ -27,8 +27,7 @@
     "cs": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
     "cs:fix": "@php vendor/bin/php-cs-fixer fix",
     "clean-check": "@php bin/check-clean",
-    "audit": "@composer audit",
-    "check": ["@cs", "@stan", "@test", "@clean-check", "@audit"]
+    "check": ["@cs", "@stan", "@test", "@clean-check", "@composer audit"]
   },
   "config": { "sort-packages": true }
 }
