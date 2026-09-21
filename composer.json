@@ -20,12 +20,12 @@
     "psr-4": { "ArcadeOS\\Tests\\": "tests/", "ArcadeOS\\Tools\\": "tools/" }
   },
   "scripts": {
-    "test": "phpunit",
-    "test:unit": "phpunit --testsuite unit",
-    "test:integration": "phpunit --testsuite integration",
-    "stan": "phpstan analyse --no-progress --memory-limit=512M",
-    "cs": "php-cs-fixer fix --dry-run --diff",
-    "cs:fix": "php-cs-fixer fix",
+    "test": "@php vendor/bin/phpunit",
+    "test:unit": "@php vendor/bin/phpunit --testsuite unit",
+    "test:integration": "@php vendor/bin/phpunit --testsuite integration",
+    "stan": "@php vendor/bin/phpstan analyse --no-progress --memory-limit=512M",
+    "cs": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
+    "cs:fix": "@php vendor/bin/php-cs-fixer fix",
     "clean-check": "@php bin/check-clean",
     "check": ["@cs", "@stan", "@test", "@clean-check"]
   },
