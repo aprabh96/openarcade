@@ -10,6 +10,13 @@ final class ReservationRepository
 {
     private const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
+    /** Columns the service is allowed to set through insert(), besides uuid and confirmation_code. */
+    private const INSERTABLE = [
+        'status', 'first_name', 'last_name', 'email', 'phone', 'comments', 'local_date', 'start_utc',
+        'end_utc', 'duration_minutes', 'station_count', 'subtotal_cents', 'tax_cents', 'total_cents',
+        'currency', 'hold_expires_at', 'created_by', 'created_at', 'updated_at',
+    ];
+
     public function __construct(private PDO $pdo)
     {
     }
@@ -63,6 +70,10 @@ final class ReservationRepository
      */
     public function insert(array $fields, array $stationIds): int
     {
+        $unknown = array_diff(array_keys($fields), self::INSERTABLE);
+        if ($unknown !== []) {
+            throw new \InvalidArgumentException('Unknown reservation column(s): ' . implode(', ', $unknown));
+        }
         $fields['uuid'] = self::uuid();
         for ($attempt = 1; ; $attempt++) {
             $fields['confirmation_code'] = self::confirmationCode();
@@ -139,6 +150,9 @@ final class ReservationRepository
         $statement = $this->pdo->prepare($sql);
         $statement->execute([...$params, $id, ...$fromStatuses]);
 
+        // rowCount() counts rows changed by the UPDATE, which is reliable here because every
+        // transition changes `status`: a row matching the WHERE clause can never already equal
+        // $toStatus, since $toStatus is never one of the $fromStatuses it was matched against.
         return $statement->rowCount() === 1;
     }
 

@@ -228,6 +228,24 @@ final class ReservationsTest extends TestCase
         }
     }
 
+    public function testSessionEndingAtLocalMidnight(): void
+    {
+        (new HoursRepository($this->pdo))->setWeekday(2, 600, 1440, false);
+        $first = $this->service->create(VenueFixture::request('2026-09-22', 1380, 60, 2), BookingRules::customer(false));
+        self::assertSame('confirmed', $first->status);
+        self::assertSame('2026-09-23 05:00:00', $first->endUtc);
+
+        // Same slot again: both stations are taken 23:00-00:00.
+        $this->rejects('slot_unavailable', VenueFixture::request('2026-09-22', 1380));
+
+        // 21:30-22:30 leaves a 30 minute gap before the 23:00 session, which clears the 10 minute buffer.
+        $buffered = $this->service->create(VenueFixture::request('2026-09-22', 1290), BookingRules::customer(false));
+        self::assertSame('confirmed', $buffered->status);
+
+        // 22:30-23:30 runs straight into the 23:00 session.
+        $this->rejects('slot_unavailable', VenueFixture::request('2026-09-22', 1350));
+    }
+
     public function testDaylightSavingChangeKeepsWallClockTime(): void
     {
         $clock = new FixedClock('2026-03-01 14:00:00');

@@ -44,6 +44,8 @@ final class Migrator
 
     /**
      * Migration files contain plain statements ending in ";" at end of line, and "--" comment lines.
+     * The splitter does not support stored procedures, triggers, DELIMITER blocks, or string
+     * literals that end a line with ";". Keep migrations to plain statements.
      *
      * @return string[]
      */
