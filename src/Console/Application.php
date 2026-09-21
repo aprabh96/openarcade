@@ -200,8 +200,20 @@ final class Application
     {
         $password = $options['admin-password'] ?? (getenv('ARCADEOS_ADMIN_PASSWORD') ?: '');
         if ($password === '' && defined('STDIN') && function_exists('posix_isatty') && posix_isatty(STDIN)) {
-            ($this->write)('Admin password (12+ characters):');
-            $password = trim((string) fgets(STDIN));
+            ($this->write)('Admin password (12+ characters, input hidden):');
+            $saved = shell_exec('stty -g 2>/dev/null');
+            $hidden = is_string($saved) && trim($saved) !== '';
+            if ($hidden) {
+                shell_exec('stty -echo');
+            }
+            try {
+                $password = trim((string) fgets(STDIN));
+            } finally {
+                if ($hidden) {
+                    shell_exec('stty ' . escapeshellarg(trim((string) $saved)));
+                    ($this->write)('');
+                }
+            }
         }
         if (strlen($password) < 12) {
             throw new \InvalidArgumentException('The admin password must be at least 12 characters.');

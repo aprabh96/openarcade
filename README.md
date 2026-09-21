@@ -12,4 +12,6 @@ Self-hosted reservation system for VR arcades and other venues that rent numbere
     docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner
     docker compose run --rm app php bin/console seed:demo
 
+The inline password above is for local development only; in production pass it through an environment file or the interactive prompt, never on the command line.
+
 `composer check` must pass before every commit. The clean-repo gate (`bin/check-clean`) fails on API keys, real email addresses and phone numbers. Test data uses `@example.com` and `555-01xx` only.
