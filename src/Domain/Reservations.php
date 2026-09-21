@@ -152,8 +152,11 @@ final class Reservations
 
     /**
      * Marks a held reservation paid. Safe to call twice with the same payment id.
-     * If the hold expired and the stations were taken meanwhile, the reservation becomes "expired"
-     * and BookingRejected('hold_expired') tells the caller to refund.
+     * A past-due hold is honoured the same way no matter whether expireHolds() already swept it:
+     * whether the row is still "held" with an old deadline, or already flipped to "expired", the
+     * outcome depends only on whether its stations are still free. If they are, the payment is
+     * accepted. If not, the reservation becomes (or stays) "expired" and BookingRejected('hold_expired')
+     * tells the caller to refund.
      *
      * @throws BookingRejected
      */
@@ -177,10 +180,14 @@ final class Reservations
             if ($current->status === 'confirmed' && $current->paymentId === $paymentId) {
                 return $current;
             }
-            if ($current->status !== 'held') {
+            // A hold can be past due in two ways: still "held" with an old deadline, or already swept to
+            // "expired" by expireHolds(). Both are handled the same, so the outcome never depends on
+            // whether the sweep happened to run first.
+            if (!in_array($current->status, ['held', 'expired'], true)) {
                 throw new BookingRejected('wrong_status');
             }
-            $expired = $current->holdExpiresAtUtc !== null && $current->holdExpiresAtUtc <= $now->format('Y-m-d H:i:s');
+            $expired = $current->status === 'expired'
+                || ($current->holdExpiresAtUtc !== null && $current->holdExpiresAtUtc <= $now->format('Y-m-d H:i:s'));
             if ($expired) {
                 $blocks = $this->reservations->blocksForDate($current->localDate, $now, $tz, $id);
                 $free = Availability::freeStations(
@@ -191,12 +198,14 @@ final class Reservations
                     $settings->bufferMinutes
                 );
                 if (count($free) !== count($current->stationIds)) {
-                    $this->reservations->transition($id, ['held'], 'expired', $now);
+                    if ($current->status === 'held') {
+                        $this->reservations->transition($id, ['held'], 'expired', $now);
+                    }
 
                     return 'hold_expired';
                 }
             }
-            $this->reservations->transition($id, ['held'], 'confirmed', $now, $provider, $paymentId);
+            $this->reservations->transition($id, ['held', 'expired'], 'confirmed', $now, $provider, $paymentId);
             $confirmed = $this->reservations->find($id, $tz);
             if ($confirmed === null) {
                 throw new \LogicException('Reservation vanished after confirm.');

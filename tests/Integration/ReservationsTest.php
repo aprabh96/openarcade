@@ -192,6 +192,42 @@ final class ReservationsTest extends TestCase
         self::assertSame('confirmed', $this->service->confirmPayment($held->id, 'square', 'pay_slow')->status);
     }
 
+    public function testLatePaymentAfterTheSweepIsHonouredWhenStationsAreStillFree(): void
+    {
+        $held = $this->service->create(VenueFixture::request('2026-09-22', 600), BookingRules::customer(true));
+        $this->clock->advanceMinutes(11);
+        self::assertSame(1, $this->service->expireHolds());
+        $confirmed = $this->service->confirmPayment($held->id, 'square', 'pay_after_sweep');
+        self::assertSame('confirmed', $confirmed->status);
+        self::assertSame('pay_after_sweep', $confirmed->paymentId);
+    }
+
+    public function testLatePaymentAfterTheSweepIsRefusedWhenStationsWereTaken(): void
+    {
+        $held = $this->service->create(VenueFixture::request('2026-09-22', 600, 60, 2), BookingRules::customer(true));
+        $this->clock->advanceMinutes(11);
+        self::assertSame(1, $this->service->expireHolds());
+        $this->service->create(VenueFixture::request('2026-09-22', 600, 60, 2), BookingRules::customer(false));
+        try {
+            $this->service->confirmPayment($held->id, 'square', 'pay_too_late');
+            self::fail('expected hold_expired');
+        } catch (BookingRejected $rejected) {
+            self::assertSame('hold_expired', $rejected->reason);
+        }
+    }
+
+    public function testCancelledReservationCannotBeConfirmed(): void
+    {
+        $held = $this->service->create(VenueFixture::request('2026-09-22', 600), BookingRules::customer(true));
+        $this->service->cancel($held->id);
+        try {
+            $this->service->confirmPayment($held->id, 'square', 'pay_x');
+            self::fail('expected wrong_status');
+        } catch (BookingRejected $rejected) {
+            self::assertSame('wrong_status', $rejected->reason);
+        }
+    }
+
     public function testDaylightSavingChangeKeepsWallClockTime(): void
     {
         $clock = new FixedClock('2026-03-01 14:00:00');
