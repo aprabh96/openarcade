@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Book a session</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/book/book.css">
+</head>
+<body>
+  <main class="book">
+    <header class="book-header">
+      <img id="logo" class="hidden" alt="">
+      <h1 id="venue-name">Book a session</h1>
+    </header>
+
+    <div id="loading" class="card" aria-live="polite">Loading…</div>
+    <div id="fatal" class="notice error hidden" role="alert"></div>
+
+    <section id="step-when" class="card hidden" aria-labelledby="when-title">
+      <h2 id="when-title">1. Pick a time</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label for="date">Date</label>
+          <input type="date" id="date" required>
+        </div>
+        <div class="field">
+          <label for="stations">Stations</label>
+          <select id="stations" aria-describedby="stations-help"></select>
+          <p id="stations-help" class="small muted">One station per player.</p>
+        </div>
+      </div>
+      <fieldset class="field durations">
+        <legend>Session length</legend>
+        <div id="durations" class="row"></div>
+      </fieldset>
+      <div id="slots-status" class="muted small" aria-live="polite"></div>
+      <div id="slots" class="slots" role="group" aria-label="Available start times"></div>
+    </section>
+
+    <section id="step-who" class="card hidden" aria-labelledby="who-title">
+      <h2 id="who-title">2. Your details</h2>
+      <p id="summary" class="summary"></p>
+      <form id="details" novalidate>
+        <div class="grid-2">
+          <div class="field" data-field="first_name"><label for="first_name">First name</label><input type="text" id="first_name" name="first_name" autocomplete="given-name" required maxlength="60"></div>
+          <div class="field" data-field="last_name"><label for="last_name">Last name</label><input type="text" id="last_name" name="last_name" autocomplete="family-name" required maxlength="60"></div>
+          <div class="field" data-field="email"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="email" required maxlength="190"></div>
+          <div class="field" data-field="phone"><label for="phone">Phone</label><input type="tel" id="phone" name="phone" autocomplete="tel" required maxlength="30"></div>
+        </div>
+        <div class="field" data-field="comments"><label for="comments">Anything we should know? <span class="muted">(optional)</span></label><textarea id="comments" name="comments" maxlength="1000"></textarea></div>
+        <div id="payment" class="field hidden" data-field="payment_token">
+          <label>Card</label>
+          <div id="card-container"></div>
+          <p class="small muted">Your card is charged now. Payments are processed by Square; card details never touch this server.</p>
+        </div>
+        <div id="form-error" class="notice error hidden" role="alert"></div>
+        <div class="row spread">
+          <button type="button" id="back" class="btn secondary">Back</button>
+          <button type="submit" id="submit" class="btn">Confirm booking</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="step-done" class="card hidden" aria-labelledby="done-title">
+      <h2 id="done-title">You're booked!</h2>
+      <p class="notice success">Confirmation code <strong id="done-code"></strong>. We've emailed the details.</p>
+      <dl class="details">
+        <dt>When</dt><dd id="done-when"></dd>
+        <dt>Stations</dt><dd id="done-stations"></dd>
+        <dt>Total</dt><dd id="done-total"></dd>
+        <dt>Where</dt><dd id="done-where"></dd>
+      </dl>
+      <button type="button" id="again" class="btn secondary">Book another session</button>
+    </section>
+
+    <footer class="small muted">Times shown in <span id="tz"></span>.</footer>
+  </main>
+  <script type="module" src="/book/book.js"></script>
+</body>
+</html>

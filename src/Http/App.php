@@ -47,6 +47,15 @@ final class App
         $public = new PublicApi($services);
         $admin = new AdminApi($services);
 
+        foreach (['book', 'admin'] as $page) {
+            $file = $services->config->rootDir() . "/public/{$page}/index.html";
+            $serve = static fn (Request $r): Response => is_file($file)
+                ? Response::html((string) file_get_contents($file))
+                : Response::error('not_found', 'Page not installed.', 404);
+            $this->router->add('GET', "/{$page}", $serve);
+            $this->router->add('GET', "/{$page}/", $serve);
+        }
+
         $this->router->add('GET', '/api/venue', fn (Request $r): Response => $public->venue($r));
         $this->router->add('GET', '/api/availability', fn (Request $r): Response => $public->availability($r));
         $this->router->add('GET', '/api/booking-token', fn (Request $r): Response => $public->bookingToken($r));

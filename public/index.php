@@ -9,15 +9,22 @@ use ArcadeOS\Http\Response;
 use ArcadeOS\Support\Config;
 
 $root = dirname(__DIR__);
+$path = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+
+// PHP's built-in server (development): let it serve real files itself.
+if (PHP_SAPI === 'cli-server' && $path !== '/' && is_file(__DIR__ . $path)) {
+    return false;
+}
+
 require $root . '/vendor/autoload.php';
 
-$path = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
 if ($path === '/' || $path === '') {
     Response::redirect('/book/')->send();
 
     return;
 }
-if (!str_starts_with($path, '/api/')) {
+$handled = str_starts_with($path, '/api/') || in_array(rtrim($path, '/'), ['/book', '/admin'], true);
+if (!$handled) {
     Response::error('not_found', 'No such page.', 404)->send();
 
     return;

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Staff dashboard</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body class="admin">
+  <section id="login" class="login card hidden" aria-labelledby="login-title">
+    <h1 id="login-title">Staff sign in</h1>
+    <form id="login-form" novalidate>
+      <div class="field"><label for="username">Username</label><input type="text" id="username" autocomplete="username" required></div>
+      <div class="field"><label for="password">Password</label><input type="password" id="password" autocomplete="current-password" required></div>
+      <div id="login-error" class="notice error hidden" role="alert"></div>
+      <button type="submit" class="btn">Sign in</button>
+    </form>
+  </section>
+
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <strong id="venue-name">Dashboard</strong>
+      <nav class="tabs" aria-label="Sections">
+        <button type="button" class="tab" data-tab="day" aria-pressed="true">Day</button>
+        <button type="button" class="tab" data-tab="settings">Settings</button>
+      </nav>
+      <div class="row">
+        <span id="whoami" class="small muted"></span>
+        <button type="button" id="logout" class="btn small secondary">Sign out</button>
+      </div>
+    </header>
+
+    <div id="flash" class="notice hidden" role="status"></div>
+
+    <section id="tab-day" class="tab-panel">
+      <div class="toolbar row spread">
+        <div class="row">
+          <button type="button" id="prev-day" class="btn small secondary" aria-label="Previous day">‹</button>
+          <input type="date" id="day" aria-label="Date">
+          <button type="button" id="next-day" class="btn small secondary" aria-label="Next day">›</button>
+          <button type="button" id="today" class="btn small secondary">Today</button>
+        </div>
+        <div class="row">
+          <span id="day-hours" class="small muted"></span>
+          <button type="button" id="new-booking" class="btn small">+ New booking</button>
+        </div>
+      </div>
+      <div id="timeline" class="timeline" aria-label="Station timeline"></div>
+      <div id="day-list" class="card"></div>
+    </section>
+
+    <section id="tab-settings" class="tab-panel hidden">
+      <div class="settings-grid">
+        <form id="settings-form" class="card stack">
+          <h2>Venue</h2>
+          <div id="settings-fields"></div>
+          <div id="settings-error" class="notice error hidden" role="alert"></div>
+          <button type="submit" class="btn">Save venue settings</button>
+        </form>
+        <form id="hours-form" class="card stack">
+          <h2>Opening hours</h2>
+          <table id="hours-table"><thead><tr><th>Day</th><th>Open</th><th>Close</th><th>Closed</th></tr></thead><tbody></tbody></table>
+          <div id="hours-error" class="notice error hidden" role="alert"></div>
+          <button type="submit" class="btn">Save hours</button>
+        </form>
+        <div class="card stack">
+          <h2>Prices</h2>
+          <p class="small muted">Per station. "Every day" is the default; a weekday row overrides it for that day.</p>
+          <table id="prices-table"><thead><tr><th>Day</th><th>Length</th><th>Price</th><th></th></tr></thead><tbody></tbody></table>
+          <form id="price-form" class="row">
+            <select id="price-weekday" aria-label="Weekday"></select>
+            <input type="number" id="price-duration" min="5" max="1440" step="5" placeholder="Minutes" aria-label="Minutes" required>
+            <input type="number" id="price-amount" min="0" step="0.01" placeholder="Price" aria-label="Price" required>
+            <button type="submit" class="btn small">Add or update</button>
+          </form>
+          <div id="prices-error" class="notice error hidden" role="alert"></div>
+        </div>
+        <div class="card stack">
+          <h2>Closures and special hours</h2>
+          <table id="closures-table"><thead><tr><th>Date</th><th>Detail</th><th></th></tr></thead><tbody></tbody></table>
+          <form id="closure-form" class="row">
+            <input type="date" id="closure-date" aria-label="Date" required>
+            <select id="closure-kind" aria-label="Kind"><option value="closed">Closed all day</option><option value="special">Special hours</option></select>
+            <input type="text" id="closure-reason" placeholder="Reason" aria-label="Reason" maxlength="120">
+            <input type="time" id="closure-open" aria-label="Open" class="hidden">
+            <input type="time" id="closure-close" aria-label="Close" class="hidden">
+            <button type="submit" class="btn small">Add</button>
+          </form>
+          <div id="closures-error" class="notice error hidden" role="alert"></div>
+        </div>
+        <form id="stations-form" class="card stack">
+          <h2>Stations</h2>
+          <div class="field"><label for="station-count">Number of stations</label><input type="number" id="station-count" min="1" max="200" required></div>
+          <div id="station-labels"></div>
+          <div id="stations-error" class="notice error hidden" role="alert"></div>
+          <button type="submit" class="btn">Save stations</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <aside id="panel" class="panel hidden" aria-label="Reservation">
+    <div class="panel-head row spread">
+      <h2 id="panel-title">Reservation</h2>
+      <button type="button" id="panel-close" class="btn small secondary" aria-label="Close">✕</button>
+    </div>
+    <div id="panel-body" class="stack"></div>
+  </aside>
+  <script type="module" src="/admin/admin.js"></script>
+</body>
+</html>

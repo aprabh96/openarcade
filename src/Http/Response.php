@@ -26,6 +26,11 @@ final class Response
         return new self($status, [], '');
     }
 
+    public static function html(string $html, int $status = 200): self
+    {
+        return new self($status, ['Content-Type' => 'text/html; charset=utf-8'], $html);
+    }
+
     /** @param array<string,mixed> $details */
     public static function error(string $code, string $message, int $status, array $details = []): self
     {

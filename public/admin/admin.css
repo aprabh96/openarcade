@@ -1,0 +1,46 @@
+.admin { padding-bottom: 3rem; }
+.login { max-width: 380px; margin: 10vh auto; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 0.6rem 1rem; background: var(--brand); color: var(--brand-ink);
+}
+.topbar .tabs { display: flex; gap: 0.25rem; }
+.tab { background: transparent; color: inherit; border: 1px solid transparent; padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; }
+.tab[aria-pressed="true"] { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.35); }
+.topbar .btn.secondary { background: rgba(255, 255, 255, 0.14); color: inherit; border-color: rgba(255, 255, 255, 0.35); }
+.tab-panel { padding: 1rem; max-width: 1400px; margin: 0 auto; }
+.toolbar { margin-bottom: 0.75rem; }
+#flash { margin: 0.75rem 1rem 0; }
+
+.timeline { position: relative; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 0.5rem 0.75rem 0.75rem; overflow-x: auto; }
+.timeline .ruler { position: relative; height: 1.4rem; margin-left: var(--label-w, 110px); border-bottom: 1px solid var(--line); }
+.timeline .tick { position: absolute; top: 0; transform: translateX(-50%); font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+.timeline .lane { position: relative; display: flex; align-items: stretch; min-height: 44px; border-bottom: 1px solid var(--line); }
+.timeline .lane-label { flex: 0 0 var(--label-w, 110px); padding: 0.4rem 0.25rem; font-size: 0.85rem; font-weight: 600; }
+.timeline .lane-track { position: relative; flex: 1; background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: calc(100% / var(--hours, 12)) 100%; }
+.timeline .now { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--bad); z-index: 2; pointer-events: none; }
+.res {
+  position: absolute; top: 5px; bottom: 5px; border-radius: 6px; padding: 0.25rem 0.4rem; font-size: 0.78rem; line-height: 1.2;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border: 1px solid transparent; cursor: pointer; text-align: left; color: var(--ink);
+}
+.res.confirmed { background: #dcfce7; border-color: #86efac; }
+.res.confirmed.running { background: #bbf7d0; border-color: #16a34a; }
+.res.held { background: #ede9fe; border-color: #c4b5fd; }
+.res.cancelled, .res.expired, .res.payment_failed { background: #f3f4f6; border-color: #e5e7eb; color: var(--muted); text-decoration: line-through; }
+.res:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 40%, transparent); }
+#day-list { margin-top: 1rem; }
+#day-list .status-row { cursor: pointer; }
+#day-list .status-row:hover { background: #f9fafb; }
+
+.panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 100%); background: var(--card); box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  padding: 1rem; overflow-y: auto; z-index: 20;
+}
+.panel-head { margin-bottom: 0.75rem; }
+.panel .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.panel .timer { padding: 0.6rem 0.75rem; border-radius: 8px; background: #f3f4f6; }
+.panel .timer.running { background: #dcfce7; }
+
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
+#hours-table input[type="time"] { width: auto; }
+#station-labels .field { margin-bottom: 0.5rem; }

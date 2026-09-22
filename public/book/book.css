@@ -1,0 +1,23 @@
+.book { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+.book-header { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1rem; }
+.book-header img { height: 44px; width: auto; }
+.book .card + .card { margin-top: 1rem; }
+.durations { border: 0; padding: 0; margin: 0 0 0.9rem; }
+.durations legend { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; padding: 0; }
+.duration {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0.1rem;
+  padding: 0.5rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer;
+}
+.duration[aria-pressed="true"] { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+.duration .price { font-size: 0.85rem; color: var(--muted); }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem; margin-top: 0.75rem; }
+.slot { padding: 0.55rem 0.4rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer; text-align: center; }
+.slot:hover:not(:disabled) { border-color: var(--brand); }
+.slot:disabled { color: #9ca3af; background: #f3f4f6; cursor: not-allowed; text-decoration: line-through; }
+.slot .free { display: block; font-size: 0.72rem; color: var(--muted); }
+.summary { padding: 0.75rem 0.9rem; background: #f3f4f6; border-radius: 8px; }
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; margin: 0 0 1rem; }
+.details dt { font-weight: 600; }
+.details dd { margin: 0; }
+#card-container { min-height: 90px; }
+footer { margin-top: 1.5rem; text-align: center; }
