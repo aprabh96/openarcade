@@ -12,8 +12,11 @@ use ArcadeOS\Domain\HoursRepository;
 use ArcadeOS\Domain\PriceRepository;
 use ArcadeOS\Domain\Reservations;
 use ArcadeOS\Domain\StationRepository;
+use ArcadeOS\Payments\NullGateway;
+use ArcadeOS\Payments\PaymentGateway;
 use ArcadeOS\Settings\SettingsRepository;
 use ArcadeOS\Support\Clock;
+use ArcadeOS\Support\Logger;
 use PDO;
 
 final class Application
@@ -26,10 +29,21 @@ final class Application
     /** @var callable(string): void */
     private $write;
 
+    private PaymentGateway $gateway;
+    private Logger $logger;
+
     /** @param callable(string): void $write */
-    public function __construct(private PDO $pdo, private string $migrationsDir, private Clock $clock, callable $write)
-    {
+    public function __construct(
+        private PDO $pdo,
+        private string $migrationsDir,
+        private Clock $clock,
+        callable $write,
+        ?PaymentGateway $gateway = null,
+        ?Logger $logger = null,
+    ) {
         $this->write = $write;
+        $this->gateway = $gateway ?? new NullGateway();
+        $this->logger = $logger ?? new Logger(null);
     }
 
     /** @param string[] $argv */
@@ -50,6 +64,7 @@ final class Application
                 'admin:create' => $this->createAdmin($options),
                 'seed:demo' => $this->seedDemo(),
                 'holds:release' => $this->releaseHolds(),
+                'privacy:purge' => $this->purge($options),
                 'help' => $this->help(0),
                 default => $this->help(1),
             };
@@ -74,7 +89,8 @@ final class Application
             '                 (the password may come from the ARCADEOS_ADMIN_PASSWORD environment variable)',
             '  admin:create   Create another admin: --admin-user= --admin-password=',
             '  seed:demo      Add fake reservations for demos and screenshots',
-            '  holds:release  Expire unpaid holds',
+            '  holds:release  Release unpaid holds (checks the payment provider first when PAYMENT_MODE is not none)',
+            '  privacy:purge  Anonymise guest details of past reservations: --older-than-months=12',
         ] as $line) {
             ($this->write)($line);
         }
@@ -171,8 +187,28 @@ final class Application
 
     private function releaseHolds(): int
     {
-        $count = Reservations::build($this->pdo, $this->clock)->expireHolds();
-        ($this->write)("Expired {$count} unpaid hold(s).");
+        $report = Reservations::build($this->pdo, $this->clock)->reconcileHolds($this->gateway, $this->logger);
+        ($this->write)(sprintf(
+            'Holds: %d expired, %d confirmed from late payments, %d refunded.',
+            $report['expired'],
+            $report['confirmed'],
+            $report['refunded'],
+        ));
+
+        return 0;
+    }
+
+    /** @param array<string,string> $options */
+    private function purge(array $options): int
+    {
+        $months = (int) ($options['older-than-months'] ?? 0);
+        if ($months < 1 || $months > 120) {
+            throw new \InvalidArgumentException('--older-than-months must be from 1 to 120.');
+        }
+        $tz = (new SettingsRepository($this->pdo))->load()->tz();
+        $cutoff = $this->clock->now()->setTimezone($tz)->modify("-{$months} months")->format('Y-m-d');
+        $count = (new \ArcadeOS\Domain\ReservationRepository($this->pdo))->anonymiseBefore($cutoff, $this->clock->now());
+        ($this->write)("Anonymised {$count} reservation(s) dated before {$cutoff}.");
 
         return 0;
     }

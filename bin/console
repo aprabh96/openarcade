@@ -7,17 +7,27 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use ArcadeOS\Console\Application;
 use ArcadeOS\Db\Connection;
+use ArcadeOS\Http\Drivers;
 use ArcadeOS\Support\Config;
+use ArcadeOS\Support\Logger;
 use ArcadeOS\Support\SystemClock;
 
 $root = dirname(__DIR__);
+$config = Config::load($root);
 try {
-    $pdo = Connection::fromConfig(Config::load($root));
+    $pdo = Connection::fromConfig($config);
 } catch (\Throwable $error) {
     fwrite(STDERR, 'Cannot connect to the database. Check DB_* in .env. ' . $error->getMessage() . "\n");
+    exit(2);
+}
+$logger = new Logger($root . '/storage/logs/app.log');
+try {
+    $gateway = Drivers::gateway($config, $logger);
+} catch (\Throwable $error) {
+    fwrite(STDERR, 'Payment settings are incomplete: ' . $error->getMessage() . "\n");
     exit(2);
 }
 
 exit((new Application($pdo, $root . '/migrations', new SystemClock(), static function (string $line): void {
     echo $line . "\n";
-}))->run($argv));
+}, $gateway, $logger))->run($argv));

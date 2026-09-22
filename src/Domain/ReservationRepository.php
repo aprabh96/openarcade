@@ -215,18 +215,25 @@ final class ReservationRepository
     }
 
     /**
-     * Held reservations whose hold has passed, with their payment idempotency key (the uuid),
-     * so a payment that completed late can be reconciled before the hold is released.
+     * Held reservations whose hold has passed, with what reconciliation needs to look their payment up.
      *
-     * @return array<int, array{id:int,uuid:string}>
+     * @return array<int, array{id:int,code:string,createdAt:\DateTimeImmutable,holdExpiresAt:\DateTimeImmutable}>
      */
     public function overdueHolds(\DateTimeImmutable $nowUtc): array
     {
-        $statement = $this->pdo->prepare("SELECT id, uuid FROM reservations WHERE status = 'held' AND hold_expires_at <= ?");
+        $statement = $this->pdo->prepare(
+            "SELECT id, confirmation_code, created_at, hold_expires_at FROM reservations WHERE status = 'held' AND hold_expires_at <= ? ORDER BY id"
+        );
         $statement->execute([$nowUtc->format('Y-m-d H:i:s')]);
+        $utc = new \DateTimeZone('UTC');
         $result = [];
         foreach ($statement->fetchAll() as $row) {
-            $result[] = ['id' => (int) $row['id'], 'uuid' => (string) $row['uuid']];
+            $result[] = [
+                'id' => (int) $row['id'],
+                'code' => (string) $row['confirmation_code'],
+                'createdAt' => new \DateTimeImmutable((string) $row['created_at'], $utc),
+                'holdExpiresAt' => new \DateTimeImmutable((string) $row['hold_expires_at'], $utc),
+            ];
         }
 
         return $result;

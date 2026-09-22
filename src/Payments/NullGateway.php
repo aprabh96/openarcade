@@ -17,7 +17,7 @@ final class NullGateway implements PaymentGateway
         throw new \LogicException('Payment mode "none" never charges.');
     }
 
-    public function find(string $idempotencyKey): ?PaymentResult
+    public function findByReference(string $referenceCode, \DateTimeImmutable $notBefore): ?PaymentResult
     {
         return null;
     }

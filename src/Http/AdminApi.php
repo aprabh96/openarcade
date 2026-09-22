@@ -323,9 +323,6 @@ final class AdminApi
      */
     private function deliver(array $stationNumbers, string $command, int|float $value): string
     {
-        if (!$this->s->notifier->enabled() && !($this->s->notifier instanceof \ArcadeOS\Realtime\NullNotifier)) {
-            return 'disabled';
-        }
         try {
             foreach ($stationNumbers as $number) {
                 $this->s->notifier->stationCommand($number, $command, $value);
@@ -346,7 +343,7 @@ final class AdminApi
      */
     private static function bookingFromBody(Request $request, ?array $existing): BookingRequest
     {
-        $get = static fn (string $key, mixed $fallback): mixed => array_key_exists($key, $request->body) ? null : $fallback;
+        $existingComments = isset($existing['comments']) && is_string($existing['comments']) ? $existing['comments'] : null;
 
         return new BookingRequest(
             $request->string('date') ?? (string) ($existing['date'] ?? ''),
@@ -357,7 +354,7 @@ final class AdminApi
             $request->string('last_name') ?? (string) ($existing['last_name'] ?? ''),
             $request->string('email') ?? (string) ($existing['email'] ?? ''),
             $request->string('phone') ?? (string) ($existing['phone'] ?? ''),
-            array_key_exists('comments', $request->body) ? $request->string('comments') : ($existing['comments'] ?? $get('comments', null)),
+            array_key_exists('comments', $request->body) ? $request->string('comments') : $existingComments,
         );
     }
 

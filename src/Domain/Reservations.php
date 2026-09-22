@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace ArcadeOS\Domain;
 
 use ArcadeOS\Db\Transaction;
+use ArcadeOS\Payments\PaymentGateway;
+use ArcadeOS\Payments\PaymentResult;
 use ArcadeOS\Settings\SettingsRepository;
 use ArcadeOS\Settings\VenueSettings;
 use ArcadeOS\Support\Clock;
+use ArcadeOS\Support\Logger;
 use PDO;
 
 final class Reservations
@@ -333,6 +336,55 @@ final class Reservations
     public function expireHolds(): int
     {
         return Transaction::run($this->pdo, fn (): int => $this->reservations->expireHolds($this->clock->now()));
+    }
+
+    /**
+     * Releases overdue holds. With a real payment gateway each hold is first checked for a payment
+     * that completed after its response was lost: found and stations still free -> confirmed;
+     * found but stations taken -> refunded; not found -> expired. A payment the provider still
+     * reports as pending keeps the hold for up to a day, then the hold is expired anyway.
+     *
+     * @return array{confirmed:int,expired:int,refunded:int}
+     */
+    public function reconcileHolds(PaymentGateway $gateway, Logger $logger): array
+    {
+        $report = ['confirmed' => 0, 'expired' => 0, 'refunded' => 0];
+        if ($gateway->mode() === 'none') {
+            $report['expired'] = $this->expireHolds();
+
+            return $report;
+        }
+        $now = $this->clock->now();
+        foreach ($this->reservations->overdueHolds($now) as $hold) {
+            $payment = $gateway->findByReference($hold['code'], $hold['createdAt']);
+            if ($payment === null || $payment->outcome !== PaymentResult::PAID) {
+                $stale = $hold['holdExpiresAt'] <= $now->modify('-1 day');
+                if ($payment !== null && !$stale) {
+                    $logger->warning('payment still pending at the provider; hold kept', ['reservation' => $hold['id']]);
+                    continue;
+                }
+                if ($this->reservations->transition($hold['id'], ['held'], 'expired', $now)) {
+                    $report['expired']++;
+                }
+                continue;
+            }
+            try {
+                $this->confirmPayment($hold['id'], $gateway->mode(), (string) $payment->paymentId);
+                $logger->info('late payment reconciled', ['reservation' => $hold['id']]);
+                $report['confirmed']++;
+            } catch (BookingRejected $rejected) {
+                if ($rejected->reason !== 'hold_expired') {
+                    $logger->warning('could not reconcile payment', ['reservation' => $hold['id'], 'reason' => $rejected->reason]);
+                    continue;
+                }
+                $row = $this->reservations->find($hold['id'], $this->settings->load()->tz());
+                $refunded = $row !== null && $gateway->refund((string) $payment->paymentId, $row->totalCents, $row->currency, 'Time no longer available');
+                $logger->error('late payment for a lost slot', ['reservation' => $hold['id'], 'refunded' => $refunded]);
+                $report['refunded']++;
+            }
+        }
+
+        return $report;
     }
 
     /**

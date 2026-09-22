@@ -5,10 +5,12 @@
   "license": "MIT",
   "require": {
     "php": ">=8.1",
+    "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-pdo": "*",
-    "ext-pdo_mysql": "*"
+    "ext-pdo_mysql": "*",
+    "phpmailer/phpmailer": "^6.9"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.59",

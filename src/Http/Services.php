@@ -57,9 +57,9 @@ final class Services
         ?Logger $logger = null,
     ): self {
         $logger ??= new Logger($config->rootDir() . '/storage/logs/app.log');
-        $gateway ??= Drivers::gateway($config);
-        $notifier ??= Drivers::notifier($config);
-        $mailer ??= Drivers::mailer($config);
+        $gateway ??= Drivers::gateway($config, $logger);
+        $notifier ??= Drivers::notifier($config, $clock);
+        $mailer ??= Drivers::mailer($config, $logger);
 
         $settings = new SettingsRepository($pdo);
         $hours = new HoursRepository($pdo);
