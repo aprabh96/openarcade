@@ -1,0 +1,9 @@
+# Safety net for hosts whose document root is this folder instead of public/:
+# nothing here is web-accessible. public/.htaccess grants access again for the web root.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

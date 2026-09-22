@@ -1,0 +1,113 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ArcadeOS\Tests\Unit\Http;
+
+use ArcadeOS\Auth\BookingToken;
+use ArcadeOS\Auth\Csrf;
+use ArcadeOS\Http\ApiError;
+use ArcadeOS\Http\ArraySession;
+use ArcadeOS\Http\Request;
+use ArcadeOS\Http\Response;
+use ArcadeOS\Http\Router;
+use ArcadeOS\Http\SecurityHeaders;
+use ArcadeOS\Support\Config;
+use ArcadeOS\Support\Env;
+use PHPUnit\Framework\TestCase;
+
+final class HttpPrimitivesTest extends TestCase
+{
+    private function request(string $method, string $path, array $body = []): Request
+    {
+        return new Request($method, $path, [], $body, [], '127.0.0.1', new ArraySession());
+    }
+
+    public function testRouterMatchesParamsAndDistinguishes404From405(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/api/things/{id}', fn (Request $r, array $p): Response => Response::json(['id' => $p['id']]));
+        self::assertSame(['id' => '42'], $router->dispatch($this->request('GET', '/api/things/42'))->decode());
+        self::assertSame(405, $router->dispatch($this->request('POST', '/api/things/42'))->status);
+        self::assertSame(404, $router->dispatch($this->request('GET', '/api/things/42/extra'))->status);
+        self::assertSame(404, $router->dispatch($this->request('GET', '/api/other'))->status);
+    }
+
+    public function testResponseErrorShapeAndHeaders(): void
+    {
+        $response = ApiError::validation(['email' => 'bad'])->toResponse()->withHeader('X-Test', '1');
+        self::assertSame(422, $response->status);
+        self::assertSame(['error' => ['code' => 'validation_failed', 'message' => 'Some fields are not valid.', 'details' => ['fields' => ['email' => 'bad']]]], $response->decode());
+        self::assertSame('1', $response->headers['X-Test']);
+        self::assertSame('application/json; charset=utf-8', $response->headers['Content-Type']);
+    }
+
+    public function testRequestFieldAccessors(): void
+    {
+        $request = $this->request('POST', '/x', ['a' => ' text ', 'n' => '12', 'm' => 7, 'f' => 'yes', 'g' => false, 'arr' => [1], 'x' => '1.5']);
+        self::assertSame('text', $request->string('a'));
+        self::assertNull($request->string('arr'));
+        self::assertSame(12, $request->int('n'));
+        self::assertSame(7, $request->int('m'));
+        self::assertNull($request->int('x'));
+        self::assertNull($request->int('missing'));
+        self::assertTrue($request->bool('f'));
+        self::assertFalse($request->bool('g'));
+        self::assertNull($request->bool('a'));
+    }
+
+    public function testCsrfTokensAreSessionBoundAndConstantTime(): void
+    {
+        $session = new ArraySession();
+        $token = Csrf::token($session);
+        self::assertSame($token, Csrf::token($session));
+        self::assertTrue(Csrf::verify($session, $token));
+        self::assertFalse(Csrf::verify($session, strrev($token)));
+        self::assertFalse(Csrf::verify($session, null));
+        self::assertFalse(Csrf::verify(new ArraySession(), $token));
+        self::assertNotSame($token, Csrf::rotate($session));
+    }
+
+    public function testBookingTokensAreSignedSessionBoundAndRotate(): void
+    {
+        $keyed = new BookingToken('key-one-0123456789abcdef0123456789abc');
+        $session = new ArraySession();
+        $token = $keyed->issue($session);
+        self::assertMatchesRegularExpression('/^[a-f0-9]{32}\.[a-f0-9]{64}$/', $token);
+        self::assertTrue($keyed->verify($session, $token));
+        self::assertFalse($keyed->verify(new ArraySession(), $token), 'another session');
+        self::assertFalse((new BookingToken('key-two-0123456789abcdef0123456789abc'))->verify($session, $token), 'another key');
+        [$nonce] = explode('.', $token);
+        self::assertFalse($keyed->verify($session, $nonce . '.' . str_repeat('0', 64)));
+        $keyed->rotate($session);
+        self::assertFalse($keyed->verify($session, $token));
+        self::assertNotSame($token, $keyed->issue($session));
+    }
+
+    public function testSecurityHeadersIncludeEmbedOrigins(): void
+    {
+        $response = (new SecurityHeaders(['https://venue.example.com']))->apply(Response::json([]));
+        self::assertStringContainsString("frame-ancestors 'self' https://venue.example.com", $response->headers['Content-Security-Policy']);
+        self::assertSame('no-store', $response->headers['Cache-Control']);
+        $alone = (new SecurityHeaders([]))->apply(Response::json([]));
+        self::assertStringContainsString("frame-ancestors 'self';", $alone->headers['Content-Security-Policy']);
+    }
+
+    public function testConfigValidatesDriversAndEmbedOrigins(): void
+    {
+        $config = new Config(new Env(['EMBED_ALLOWED_ORIGINS' => 'https://a.example.com, http://b.example.com:8080'], false), '/app');
+        self::assertSame(['https://a.example.com', 'http://b.example.com:8080'], $config->embedAllowedOrigins());
+        self::assertSame('none', $config->paymentMode());
+        self::assertSame('log', $config->mailDriver());
+        self::assertSame(480, $config->sessionIdleMinutes());
+        foreach ([['EMBED_ALLOWED_ORIGINS' => 'javascript:alert(1)'], ['PAYMENT_MODE' => 'paypal']] as $bad) {
+            try {
+                $c = new Config(new Env($bad, false), '/app');
+                isset($bad['PAYMENT_MODE']) ? $c->paymentMode() : $c->embedAllowedOrigins();
+                self::fail('expected RuntimeException');
+            } catch (\RuntimeException) {
+                self::assertTrue(true);
+            }
+        }
+    }
+}

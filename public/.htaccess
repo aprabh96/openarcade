@@ -1,0 +1,30 @@
+# Web root. Static files are served directly; everything else goes to index.php.
+Options -Indexes
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    # Never serve dotfiles.
+    RewriteRule (^|/)\. - [F]
+    # /book and /admin resolve to their index pages.
+    RewriteRule ^book/?$ book/index.html [L]
+    RewriteRule ^admin/?$ admin/index.html [L]
+    # Existing files and folders are served as they are.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|js|css)$">
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>

@@ -92,10 +92,7 @@ final class ReservationRepository
             }
         }
         $id = (int) $this->pdo->lastInsertId();
-        $link = $this->pdo->prepare('INSERT INTO reservation_stations (reservation_id, station_id) VALUES (?, ?)');
-        foreach ($stationIds as $stationId) {
-            $link->execute([$id, $stationId]);
-        }
+        $this->replaceStations($id, $stationIds);
 
         return $id;
     }
@@ -133,6 +130,55 @@ final class ReservationRepository
     }
 
     /**
+     * Every column of one reservation plus local minutes and station numbers. For staff and email only.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function findRow(int $id, \DateTimeZone $tz): ?array
+    {
+        $rows = $this->rows('r.id = ?', [$id], $tz);
+
+        return $rows[0] ?? null;
+    }
+
+    /**
+     * Every reservation on a local date, all statuses, ordered by start time. For staff only.
+     *
+     * @return array<int, array<string,mixed>>
+     */
+    public function listForDate(string $localDate, \DateTimeZone $tz): array
+    {
+        return $this->rows('r.local_date = ?', [$localDate], $tz);
+    }
+
+    public function updateContact(int $id, string $firstName, string $lastName, string $email, string $phone, ?string $comments, \DateTimeImmutable $nowUtc): void
+    {
+        $this->pdo->prepare(
+            'UPDATE reservations SET first_name = ?, last_name = ?, email = ?, phone = ?, comments = ?, updated_at = ? WHERE id = ?'
+        )->execute([$firstName, $lastName, $email, $phone, $comments, $nowUtc->format('Y-m-d H:i:s'), $id]);
+    }
+
+    /** @param int[] $stationIds */
+    public function updateSchedule(int $id, string $localDate, string $startUtc, string $endUtc, int $durationMinutes, int $stationCount, Quote $quote, array $stationIds, \DateTimeImmutable $nowUtc): void
+    {
+        $this->pdo->prepare(
+            'UPDATE reservations SET local_date = ?, start_utc = ?, end_utc = ?, duration_minutes = ?, station_count = ?, '
+            . 'subtotal_cents = ?, tax_cents = ?, total_cents = ?, currency = ?, updated_at = ? WHERE id = ?'
+        )->execute([
+            $localDate, $startUtc, $endUtc, $durationMinutes, $stationCount,
+            $quote->subtotalCents, $quote->taxCents, $quote->totalCents, $quote->currency,
+            $nowUtc->format('Y-m-d H:i:s'), $id,
+        ]);
+        $this->replaceStations($id, $stationIds);
+    }
+
+    public function updateTimer(int $id, string $timerStatus, ?string $timerEndUtc, \DateTimeImmutable $nowUtc): void
+    {
+        $this->pdo->prepare('UPDATE reservations SET timer_status = ?, timer_end_utc = ?, updated_at = ? WHERE id = ?')
+            ->execute([$timerStatus, $timerEndUtc, $nowUtc->format('Y-m-d H:i:s'), $id]);
+    }
+
+    /**
      * @param string[] $fromStatuses
      * @return bool true when a row changed
      */
@@ -166,6 +212,100 @@ final class ReservationRepository
         $statement->execute([$now, $now]);
 
         return $statement->rowCount();
+    }
+
+    /**
+     * Held reservations whose hold has passed, with their payment idempotency key (the uuid),
+     * so a payment that completed late can be reconciled before the hold is released.
+     *
+     * @return array<int, array{id:int,uuid:string}>
+     */
+    public function overdueHolds(\DateTimeImmutable $nowUtc): array
+    {
+        $statement = $this->pdo->prepare("SELECT id, uuid FROM reservations WHERE status = 'held' AND hold_expires_at <= ?");
+        $statement->execute([$nowUtc->format('Y-m-d H:i:s')]);
+        $result = [];
+        foreach ($statement->fetchAll() as $row) {
+            $result[] = ['id' => (int) $row['id'], 'uuid' => (string) $row['uuid']];
+        }
+
+        return $result;
+    }
+
+    /** Anonymises personal details of reservations whose date is older than the cut-off. Returns rows changed. */
+    public function anonymiseBefore(string $localDate, \DateTimeImmutable $nowUtc): int
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE reservations SET first_name = 'Removed', last_name = '', email = '', phone = '', comments = NULL, updated_at = ? "
+            . "WHERE local_date < ? AND email <> ''"
+        );
+        $statement->execute([$nowUtc->format('Y-m-d H:i:s'), $localDate]);
+
+        return $statement->rowCount();
+    }
+
+    /** @param int[] $stationIds */
+    private function replaceStations(int $id, array $stationIds): void
+    {
+        $this->pdo->prepare('DELETE FROM reservation_stations WHERE reservation_id = ?')->execute([$id]);
+        $link = $this->pdo->prepare('INSERT INTO reservation_stations (reservation_id, station_id) VALUES (?, ?)');
+        foreach ($stationIds as $stationId) {
+            $link->execute([$id, $stationId]);
+        }
+    }
+
+    /**
+     * @param array<int|string> $params
+     * @return array<int, array<string,mixed>>
+     */
+    private function rows(string $where, array $params, \DateTimeZone $tz): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT r.*, GROUP_CONCAT(s.number ORDER BY s.number) AS station_numbers '
+            . 'FROM reservations r '
+            . 'LEFT JOIN reservation_stations rs ON rs.reservation_id = r.id '
+            . 'LEFT JOIN stations s ON s.id = rs.station_id '
+            . "WHERE {$where} GROUP BY r.id ORDER BY r.start_utc, r.id"
+        );
+        $statement->execute($params);
+        $result = [];
+        foreach ($statement->fetchAll() as $row) {
+            [$startMinute, $endMinute] = self::localMinutes((string) $row['start_utc'], (string) $row['end_utc'], $tz);
+            $numbers = $row['station_numbers'] === null || $row['station_numbers'] === ''
+                ? []
+                : array_map('intval', explode(',', (string) $row['station_numbers']));
+            $result[] = [
+                'id' => (int) $row['id'],
+                'uuid' => (string) $row['uuid'],
+                'confirmation_code' => (string) $row['confirmation_code'],
+                'status' => (string) $row['status'],
+                'first_name' => (string) $row['first_name'],
+                'last_name' => (string) $row['last_name'],
+                'email' => (string) $row['email'],
+                'phone' => (string) $row['phone'],
+                'comments' => $row['comments'] === null ? null : (string) $row['comments'],
+                'date' => (string) $row['local_date'],
+                'start_minute' => $startMinute,
+                'end_minute' => $endMinute,
+                'duration_minutes' => (int) $row['duration_minutes'],
+                'station_count' => (int) $row['station_count'],
+                'stations' => $numbers,
+                'subtotal_cents' => (int) $row['subtotal_cents'],
+                'tax_cents' => (int) $row['tax_cents'],
+                'total_cents' => (int) $row['total_cents'],
+                'currency' => (string) $row['currency'],
+                'payment_provider' => (string) $row['payment_provider'],
+                'payment_id' => $row['payment_id'] === null ? null : (string) $row['payment_id'],
+                'hold_expires_at' => $row['hold_expires_at'] === null ? null : (string) $row['hold_expires_at'],
+                'timer_status' => (string) $row['timer_status'],
+                'timer_end_utc' => $row['timer_end_utc'] === null ? null : (string) $row['timer_end_utc'],
+                'created_by' => (string) $row['created_by'],
+                'created_at' => (string) $row['created_at'],
+                'updated_at' => (string) $row['updated_at'],
+            ];
+        }
+
+        return $result;
     }
 
     /** @return array{0:int,1:int} start and end as minutes after local midnight of the start date */

@@ -14,13 +14,28 @@ final class PriceRepository
 
     public function load(): PriceList
     {
-        $query = $this->pdo->query('SELECT weekday, duration_minutes, price_cents FROM prices');
         $byWeekday = [];
-        foreach ($query === false ? [] : $query->fetchAll() as $row) {
-            $byWeekday[(int) $row['weekday']][(int) $row['duration_minutes']] = (int) $row['price_cents'];
+        foreach ($this->all() as $row) {
+            $byWeekday[$row['weekday']][$row['duration_minutes']] = $row['price_cents'];
         }
 
         return new PriceList($byWeekday);
+    }
+
+    /** @return array<int, array{weekday:int,duration_minutes:int,price_cents:int}> ordered by weekday then duration */
+    public function all(): array
+    {
+        $query = $this->pdo->query('SELECT weekday, duration_minutes, price_cents FROM prices ORDER BY weekday, duration_minutes');
+        $result = [];
+        foreach ($query === false ? [] : $query->fetchAll() as $row) {
+            $result[] = [
+                'weekday' => (int) $row['weekday'],
+                'duration_minutes' => (int) $row['duration_minutes'],
+                'price_cents' => (int) $row['price_cents'],
+            ];
+        }
+
+        return $result;
     }
 
     public function set(int $weekday, int $durationMinutes, int $priceCents): void

@@ -9,6 +9,7 @@
   <testsuites>
     <testsuite name="unit"><directory>tests/Unit</directory></testsuite>
     <testsuite name="integration"><directory>tests/Integration</directory></testsuite>
+    <testsuite name="api"><directory>tests/Api</directory></testsuite>
   </testsuites>
   <source><include><directory>src</directory></include></source>
 </phpunit>
