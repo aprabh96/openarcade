@@ -8,10 +8,7 @@ use ArcadeOS\Db\Migrator;
 use ArcadeOS\Domain\BookingRejected;
 use ArcadeOS\Domain\BookingRequest;
 use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
 use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Domain\StationRepository;
 use ArcadeOS\Payments\NullGateway;
 use ArcadeOS\Payments\PaymentGateway;
 use ArcadeOS\Settings\SettingsRepository;
@@ -91,6 +88,7 @@ final class Application
             '  seed:demo      Add fake reservations for demos and screenshots',
             '  holds:release  Release unpaid holds (checks the payment provider first when PAYMENT_MODE is not none)',
             '  privacy:purge  Anonymise guest details of past reservations: --older-than-months=12',
+            '  doctor         Check the installation: [--online] [--json]. Exit code 1 when anything fails.',
         ] as $line) {
             ($this->write)($line);
         }
@@ -110,38 +108,25 @@ final class Application
     private function install(array $options): int
     {
         // Validate the admin first so a bad password changes nothing.
-        $username = $this->adminUsername($options);
+        $username = trim($options['admin-user'] ?? '');
+        if (!Installer::validUsername($username)) {
+            throw new \InvalidArgumentException('--admin-user must be 3-50 letters, digits, dot, dash or underscore.');
+        }
         $password = $this->adminPassword($options);
 
-        $this->migrate();
-
-        $settings = new SettingsRepository($this->pdo);
+        $installOptions = [];
         if (isset($options['venue'])) {
-            $settings->set('venue_name', $options['venue']);
+            $installOptions['venue'] = $options['venue'];
         }
         if (isset($options['timezone'])) {
-            $settings->set('timezone', $options['timezone']);
+            $installOptions['timezone'] = $options['timezone'];
         }
-
-        $stations = new StationRepository($this->pdo);
-        if ($stations->activeNumbersById() === [] || isset($options['stations'])) {
-            $stations->syncCount((int) ($options['stations'] ?? 4));
+        if (isset($options['stations'])) {
+            $installOptions['stations'] = (int) $options['stations'];
         }
-
-        if ($this->isEmpty('business_hours')) {
-            $hours = new HoursRepository($this->pdo);
-            for ($weekday = 0; $weekday <= 6; $weekday++) {
-                $hours->setWeekday($weekday, 600, 1320, false);
-            }
+        foreach ($this->installer()->install($username, $password, $installOptions) as $line) {
+            ($this->write)($line);
         }
-        if ($this->isEmpty('prices')) {
-            $prices = new PriceRepository($this->pdo);
-            $prices->set(-1, 60, 2500);
-            $prices->set(-1, 90, 3500);
-            $prices->set(-1, 120, 4500);
-        }
-
-        $this->insertAdmin($username, $password);
         ($this->write)('Installed. Change hours, prices and stations in the dashboard settings.');
 
         return 0;
@@ -150,9 +135,14 @@ final class Application
     /** @param array<string,string> $options */
     private function createAdmin(array $options): int
     {
-        $this->insertAdmin($this->adminUsername($options), $this->adminPassword($options));
+        ($this->write)($this->installer()->createAdmin(trim($options['admin-user'] ?? ''), $this->adminPassword($options)));
 
         return 0;
+    }
+
+    private function installer(): Installer
+    {
+        return new Installer($this->pdo, $this->migrationsDir, $this->clock);
     }
 
     private function seedDemo(): int
@@ -213,24 +203,6 @@ final class Application
         return 0;
     }
 
-    private function isEmpty(string $table): bool
-    {
-        $query = $this->pdo->query("SELECT COUNT(*) FROM {$table}");
-
-        return $query === false || (int) $query->fetchColumn() === 0;
-    }
-
-    /** @param array<string,string> $options */
-    private function adminUsername(array $options): string
-    {
-        $username = trim($options['admin-user'] ?? '');
-        if (preg_match('/^[A-Za-z0-9_.\-]{3,50}$/', $username) !== 1) {
-            throw new \InvalidArgumentException('--admin-user must be 3-50 letters, digits, dot, dash or underscore.');
-        }
-
-        return $username;
-    }
-
     /** @param array<string,string> $options */
     private function adminPassword(array $options): string
     {
@@ -251,24 +223,10 @@ final class Application
                 }
             }
         }
-        if (strlen($password) < 12) {
+        if (!Installer::validPassword($password)) {
             throw new \InvalidArgumentException('The admin password must be at least 12 characters.');
         }
 
         return $password;
-    }
-
-    private function insertAdmin(string $username, string $password): void
-    {
-        $exists = $this->pdo->prepare('SELECT 1 FROM admins WHERE username = ?');
-        $exists->execute([$username]);
-        if ($exists->fetchColumn() !== false) {
-            ($this->write)("Admin {$username} already exists; left unchanged.");
-
-            return;
-        }
-        $this->pdo->prepare('INSERT INTO admins (username, password_hash, created_at) VALUES (?, ?, ?)')
-            ->execute([$username, password_hash($password, PASSWORD_DEFAULT), $this->clock->now()->format('Y-m-d H:i:s')]);
-        ($this->write)("Admin {$username} created.");
     }
 }

@@ -1,31 +1,55 @@
+# Development and small-venue deployment. Values come from .env when present (see .env.example);
+# the defaults below are for local development only. The database host is always the db service.
 services:
   app:
     build: .
     ports:
-      - "8088:80"
+      - "${APP_PORT:-8088}:80"
     volumes:
       - .:/var/www/app
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      APP_URL: http://localhost:8088
-      APP_KEY: local-development-key-not-for-production-0000
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_URL: ${APP_URL:-http://localhost:8088}
+      APP_KEY: ${APP_KEY:-local-development-key-not-for-production-0000}
       DB_HOST: db
       DB_PORT: "3306"
-      DB_NAME: arcadeos
-      DB_USER: arcadeos
-      DB_PASSWORD: arcadeos
+      DB_NAME: ${DB_NAME:-arcadeos}
+      DB_USER: ${DB_USER:-arcadeos}
+      DB_PASSWORD: ${DB_PASSWORD:-arcadeos}
       TEST_DB_NAME: arcadeos_test
+      PAYMENT_MODE: ${PAYMENT_MODE:-none}
+      SQUARE_ENV: ${SQUARE_ENV:-sandbox}
+      SQUARE_ACCESS_TOKEN: ${SQUARE_ACCESS_TOKEN:-}
+      SQUARE_APPLICATION_ID: ${SQUARE_APPLICATION_ID:-}
+      SQUARE_LOCATION_ID: ${SQUARE_LOCATION_ID:-}
+      REALTIME_DRIVER: ${REALTIME_DRIVER:-none}
+      PUSHER_APP_ID: ${PUSHER_APP_ID:-}
+      PUSHER_KEY: ${PUSHER_KEY:-}
+      PUSHER_SECRET: ${PUSHER_SECRET:-}
+      PUSHER_CLUSTER: ${PUSHER_CLUSTER:-us2}
+      MAIL_DRIVER: ${MAIL_DRIVER:-log}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Reservations}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-tls}
+      EMBED_ALLOWED_ORIGINS: ${EMBED_ALLOWED_ORIGINS:-}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      SESSION_IDLE_MINUTES: ${SESSION_IDLE_MINUTES:-480}
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
   db:
     image: mariadb:10.11
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: arcadeos
-      MARIADB_USER: arcadeos
-      MARIADB_PASSWORD: arcadeos
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${DB_NAME:-arcadeos}
+      MARIADB_USER: ${DB_USER:-arcadeos}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-arcadeos}
     volumes:
       - dbdata:/var/lib/mysql
       - ./docker/db-init:/docker-entrypoint-initdb.d:ro
@@ -34,5 +58,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    restart: unless-stopped
 volumes:
   dbdata: {}

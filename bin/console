@@ -6,18 +6,49 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use ArcadeOS\Console\Application;
+use ArcadeOS\Console\Doctor;
 use ArcadeOS\Db\Connection;
 use ArcadeOS\Http\Drivers;
 use ArcadeOS\Support\Config;
+use ArcadeOS\Support\CurlHttpClient;
 use ArcadeOS\Support\Logger;
 use ArcadeOS\Support\SystemClock;
 
 $root = dirname(__DIR__);
 $config = Config::load($root);
+$command = $argv[1] ?? 'help';
+
+$pdo = null;
+$databaseError = null;
 try {
     $pdo = Connection::fromConfig($config);
 } catch (\Throwable $error) {
-    fwrite(STDERR, 'Cannot connect to the database. Check DB_* in .env. ' . $error->getMessage() . "\n");
+    $databaseError = $error->getMessage();
+}
+
+if ($command === 'doctor') {
+    $results = (new Doctor(
+        $config,
+        $pdo,
+        $databaseError,
+        $root . '/migrations',
+        new CurlHttpClient(),
+        in_array('--online', $argv, true),
+    ))->run();
+    $failed = Doctor::hasFailures($results);
+    if (in_array('--json', $argv, true)) {
+        echo json_encode(['ok' => !$failed, 'checks' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+    } else {
+        foreach ($results as $result) {
+            printf("%-5s %-34s %s\n", strtoupper($result['status']), $result['check'], $result['detail']);
+        }
+        echo $failed ? "\nSomething needs attention: fix every FAIL line above and run doctor again.\n" : "\nAll checks passed.\n";
+    }
+    exit($failed ? 1 : 0);
+}
+
+if ($pdo === null) {
+    fwrite(STDERR, "Cannot connect to the database. Check DB_* in .env. {$databaseError}\nRun: php bin/console doctor\n");
     exit(2);
 }
 $logger = new Logger($root . '/storage/logs/app.log');

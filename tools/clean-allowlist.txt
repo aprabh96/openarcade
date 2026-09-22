@@ -1,3 +1,5 @@
 # Exact strings the clean check may ignore. Keep this list short and explain every entry.
 # Commit trailer quoted in docs/superpowers/plans.
 noreply@anthropic.com
+# Public security contact published in SECURITY.md.
+security@psynect.ai

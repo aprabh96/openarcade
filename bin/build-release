@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Builds dist/vr-arcade-os-<version>.zip: the committed tree plus a production vendor/ folder,
+# without tests, tooling or local files, ready to unpack on shared hosting.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERSION="${1:-$(git -C "$ROOT" describe --tags --always 2>/dev/null || echo dev)}"
+NAME="vr-arcade-os-${VERSION}"
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+
+git -C "$ROOT" archive --format=tar --prefix="${NAME}/" HEAD | tar -x -C "$STAGE"
+cd "$STAGE/$NAME"
+composer install --no-dev --optimize-autoloader --no-interaction --quiet
+rm -rf tests tools .github .php-cs-fixer.php phpstan.neon phpunit.xml docker Dockerfile docker-compose.yml bin/build-release bin/check-clean
+mkdir -p storage/logs storage/cache
+touch storage/logs/.gitkeep storage/cache/.gitkeep
+
+mkdir -p "$ROOT/dist"
+rm -f "$ROOT/dist/${NAME}.zip"
+cd "$STAGE"
+zip -qr "$ROOT/dist/${NAME}.zip" "$NAME"
+echo "built dist/${NAME}.zip ($(du -h "$ROOT/dist/${NAME}.zip" | cut -f1))"

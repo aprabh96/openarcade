@@ -14,3 +14,4 @@
 Thumbs.db
 *.log
 /.local/
+/dist/
