@@ -11,7 +11,8 @@ final class SecurityHeaders
     {
     }
 
-    public function apply(Response $response): Response
+    /** @param bool $secure whether the request arrived over HTTPS; only then is HSTS sent */
+    public function apply(Response $response, bool $secure = false): Response
     {
         $ancestors = "'self'" . ($this->embedOrigins === [] ? '' : ' ' . implode(' ', $this->embedOrigins));
         $csp = implode('; ', [
@@ -28,10 +29,16 @@ final class SecurityHeaders
             "object-src 'none'",
         ]);
 
-        return $response
+        $response = $response
             ->withHeader('Content-Security-Policy', $csp)
             ->withHeader('X-Content-Type-Options', 'nosniff')
             ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+            ->withHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
             ->withHeader('Cache-Control', 'no-store');
+        if ($secure) {
+            $response = $response->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+
+        return $response;
     }
 }

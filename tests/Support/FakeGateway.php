@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ArcadeOS\Tests\Support;
 
 use ArcadeOS\Payments\PaymentGateway;
+use ArcadeOS\Payments\PaymentLookupFailed;
 use ArcadeOS\Payments\PaymentResult;
 
 /** A scripted "square" gateway: the next charge produces whatever the test queued. */
@@ -22,6 +23,11 @@ final class FakeGateway implements PaymentGateway
     public bool $refundSucceeds = true;
 
     public ?PaymentResult $lookup = null;
+
+    /** When true, findByReference() throws as if Square could not be reached. */
+    public bool $lookupFails = false;
+
+    public int $lookups = 0;
 
     public function mode(): string
     {
@@ -48,6 +54,11 @@ final class FakeGateway implements PaymentGateway
 
     public function findByReference(string $referenceCode, \DateTimeImmutable $notBefore): ?PaymentResult
     {
+        $this->lookups++;
+        if ($this->lookupFails) {
+            throw new PaymentLookupFailed('FakeGateway: lookup failed');
+        }
+
         return $this->lookup;
     }
 

@@ -7,7 +7,8 @@ local midnight in the venue's timezone (600 = 10:00). Money is integer cents.
 Error codes: `validation_failed` (422, `details.fields` maps field to message), `bad_request` (400),
 `unauthenticated` (401), `invalid_credentials` (401), `forbidden` (403), `not_found` (404),
 `method_not_allowed` (405), `slot_unavailable` (409), `wrong_status` (409), `hold_expired` (409),
-`payment_declined` (402), `payment_unknown` (503), `rate_limited` / `too_many_attempts` (429),
+`payment_declined` (402), `payment_unknown` (503), `payment_unavailable` (503, Square refused the
+request: check the Square settings), `booking_expired` / `cross_site` (403), `request_used` (409), `rate_limited` / `too_many_attempts` (429),
 `delivery_failed` (502), `server_error` (500). Booking-rule refusals use their rule name with 422:
 `date_in_past`, `too_far_ahead`, `closed`, `outside_hours`, `off_grid`, `too_soon`,
 `duration_not_offered`, `invalid_station_count`.
@@ -29,14 +30,16 @@ On the current date, slots before now plus the minimum lead time are omitted.
 
 ### `GET /api/booking-token`
 
-`{"token": "..."}`. Required for `POST /api/reservations`; bound to the browser session and rotated
-after every accepted booking. Rate limited.
+`{"token": "..."}`. Required for `POST /api/reservations`; signed with `APP_KEY` and valid for four
+hours. It needs no cookie, so the booking page also works inside an iframe. Rate limited.
 
 ### `POST /api/reservations`
 
 Body: `booking_token`, `date`, `start_minute`, `duration_minutes`, `station_count`, `first_name`,
-`last_name`, `email`, `phone`, optional `comments`, and `payment_token` when the venue takes card
-payments (the token from Square's Web Payments SDK). Requires a same-origin `Origin` or `Referer`.
+`last_name`, `email`, `phone`, optional `comments`, `payment_token` when the venue takes card
+payments (the token from Square's Web Payments SDK), and an optional `request_id` (16-64 letters,
+digits or dashes). Send the same `request_id` when retrying one attempt: the first reservation is
+returned and the card is never charged twice. Requires an `Origin` or `Referer` matching `APP_URL`.
 Rate limited to 10 attempts per 10 minutes per client.
 
 Response `201`: `{"reservation": {"confirmation_code", "status", "date", "start_minute", "end_minute",
@@ -49,7 +52,9 @@ the client is trusted for either.
 Sign in with `POST /api/admin/login` (`username`, `password`). The response includes `csrf_token`;
 send it as the `X-CSRF-Token` header on every non-GET admin request. Sessions end on
 `POST /api/admin/logout` or after `SESSION_IDLE_MINUTES` without activity. `GET /api/admin/me`
-returns the current user and token. Five failed sign-ins for a username block it for 15 minutes.
+returns the current user and token. Five failed sign-ins for one username from one client block that
+client for 15 minutes; 20 failures from a client, or 100 for a username from anywhere, also block.
+`php bin/console admin:unlock --admin-user=<name>` clears a username.
 
 | Method and path | Body | Result |
 | --- | --- | --- |
@@ -74,4 +79,5 @@ timer_status (not_started, running, stopped), timer_end_utc, created_by, created
 
 Every response carries a Content Security Policy (scripts only from the site itself and Square's
 CDN, framing only by `EMBED_ALLOWED_ORIGINS`), `X-Content-Type-Options: nosniff`,
-`Referrer-Policy: strict-origin-when-cross-origin` and `Cache-Control: no-store`.
+`Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `Cache-Control: no-store`, and
+`Strict-Transport-Security` on HTTPS requests.

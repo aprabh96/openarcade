@@ -195,6 +195,11 @@ final class AdminApiTest extends ApiTestCase
         self::assertSame(200, $stations->status, $stations->body);
         self::assertSame([['number' => 1, 'label' => 'Station 1'], ['number' => 2, 'label' => 'Station 2'], ['number' => 3, 'label' => 'Racing sim']], $this->json($stations)['stations']);
         self::assertSame(422, $this->adminRequest($csrf, 'PUT', '/api/admin/stations', ['labels' => ['9' => 'Ghost']])->status);
+        $fewer = $this->adminRequest($csrf, 'PUT', '/api/admin/stations', ['count' => 2, 'labels' => ['1' => 'Station 1', '2' => 'Station 2', '3' => 'Racing sim']]);
+        self::assertSame(200, $fewer->status, 'labels for stations removed in the same save are ignored: ' . $fewer->body);
+        self::assertCount(2, $this->json($fewer)['stations']);
+        self::assertSame(422, $this->adminRequest($csrf, 'PUT', '/api/admin/stations', ['count' => 0])->status);
+        self::assertSame(422, $this->adminRequest($csrf, 'PUT', '/api/admin/hours', ['weekdays' => [['weekday' => 1, 'open_minute' => 600, 'close_minute' => 1320, 'closed' => 'false']]])->status, 'closed must be a real boolean');
     }
 
     public function testLogoutAndIdleTimeoutEndTheSession(): void

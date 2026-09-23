@@ -43,7 +43,9 @@ Hard rules for setup agents:
   secrets, SMTP passwords, the admin password. Refer to them by variable name.
 - Never disable, weaken or skip a check to get `doctor` green. Fix the cause.
 - Never touch customer data. Do not export, copy or read the `reservations` table beyond counts.
-- Never put `SETUP_TOKEN` in a URL you record anywhere. Remove it from `.env` after setup.
+  Never run `seed:demo` on a live install; it refuses when real bookings exist.
+- Never put `SETUP_TOKEN` in a URL; `setup.php` asks for it in a form. Remove it from `.env` after setup
+  (`doctor` fails while it is still set once an admin exists).
 - Do not change the code to fit a host. Configuration lives in `.env` and the dashboard.
 - If a step needs the owner (a DNS change, a Square account, a payment), stop, say exactly what is
   needed and why, and continue once they confirm.
@@ -68,6 +70,7 @@ Hard rules for setup agents:
 ## Local development
 
 ```
+cp .env.example .env   # set APP_ENV=local, APP_DEBUG=true, APP_KEY, DB_PASSWORD
 docker compose build && docker compose run --rm app composer install
 docker compose run --rm app composer check
 docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner

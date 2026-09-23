@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * One-time installer for shared hosting without SSH.
  *
- * It only works while SETUP_TOKEN is set in .env, the same token is given in the URL, and no admin
+ * It only works while SETUP_TOKEN is set in .env, the same token is typed into the form, and no admin
  * account exists yet. After a successful install it refuses to run again; remove SETUP_TOKEN anyway.
  */
 
@@ -21,20 +21,30 @@ header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Robots-Tag: noindex');
 header("Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'");
+header('Referrer-Policy: no-referrer');
 
 $e = static fn (string $text): string => htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $page = static function (string $title, string $body, int $status = 200) use ($e): void {
     http_response_code($status);
     echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<title>' . $e($title) . '</title><link rel="stylesheet" href="/assets/app.css"></head>'
-        . '<body><main class="card" style="max-width:560px;margin:2rem auto"><h1>' . $e($title) . '</h1>' . $body . '</main></body></html>';
+        . '<body><main class="card setup"><h1>' . $e($title) . '</h1>' . $body . '</main></body></html>';
 };
 
 $config = Config::load($root);
 $token = $config->setupToken();
-$provided = (string) ($_POST['token'] ?? $_GET['token'] ?? '');
-if ($token === null || $token === '' || strlen($token) < 16 || !hash_equals($token, $provided)) {
-    $page('Setup is disabled', '<p>To run setup, put a long random <code>SETUP_TOKEN</code> in <code>.env</code> and open this page as <code>/setup.php?token=&lt;that value&gt;</code>.</p>', 403);
+$provided = (string) ($_POST['token'] ?? '');
+if ($token === null || $token === '' || strlen($token) < 16) {
+    $page('Setup is disabled', '<p>To run setup, put a long random <code>SETUP_TOKEN</code> in <code>.env</code> and reload this page.</p>', 403);
+
+    return;
+}
+if (!hash_equals($token, $provided)) {
+    // The token is typed into a form, never put in the URL, so it stays out of access logs and history.
+    $wrong = $provided !== '' ? '<p class="notice error" role="alert">That token does not match SETUP_TOKEN.</p>' : '';
+    $page('Set up your booking system', $wrong
+        . '<form method="post" action="/setup.php"><div class="field"><label for="token">Setup token (the SETUP_TOKEN value from .env)</label>'
+        . '<input type="password" id="token" name="token" required autocomplete="off"></div><button type="submit" class="btn">Continue</button></form>', $provided !== '' ? 403 : 200);
 
     return;
 }
@@ -56,7 +66,7 @@ if ($installer->hasAdmin()) {
 
 $values = ['venue' => 'My VR Arcade', 'timezone' => 'America/Chicago', 'stations' => '4', 'username' => 'owner'];
 $errors = [];
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+if (isset($_POST['venue'])) {
     foreach (array_keys($values) as $key) {
         $values[$key] = trim((string) ($_POST[$key] ?? ''));
     }

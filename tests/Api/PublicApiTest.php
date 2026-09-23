@@ -95,29 +95,43 @@ final class PublicApiTest extends ApiTestCase
         self::assertStringContainsString('785-555-0142', $this->mailer->sent[1]['text']);
     }
 
-    public function testBookingTokenIsRequiredRotatedAndSessionBound(): void
+    public function testBookingTokenIsRequiredSignedAndExpires(): void
     {
         $body = $this->customerBooking();
         $token = $body['booking_token'];
 
         $missing = $body;
         unset($missing['booking_token']);
-        self::assertSame(403, $this->request('POST', '/api/reservations', $missing)->status);
-
-        self::assertSame(201, $this->request('POST', '/api/reservations', $body)->status);
-        $replay = $body;
-        $replay['start_minute'] = 720;
-        self::assertSame(403, $this->request('POST', '/api/reservations', $replay)->status, 'token must not survive a booking');
+        self::assertSame('booking_expired', $this->json($this->request('POST', '/api/reservations', $missing))['error']['code']);
 
         $forged = $body;
-        $forged['booking_token'] = substr($token, 0, 33) . str_repeat('0', 64);
+        $forged['booking_token'] = substr($token, 0, -64) . str_repeat('0', 64);
         self::assertSame(403, $this->request('POST', '/api/reservations', $forged)->status);
+
+        $this->clock->advanceMinutes(5 * 60);
+        self::assertSame(403, $this->request('POST', '/api/reservations', $body)->status, 'stale token');
+    }
+
+    public function testARetriedRequestReturnsTheFirstBooking(): void
+    {
+        $body = $this->customerBooking() + ['request_id' => 'attempt-0123456789abcdef'];
+        $first = $this->request('POST', '/api/reservations', $body);
+        self::assertSame(201, $first->status, $first->body);
+        $again = $this->request('POST', '/api/reservations', $body);
+        self::assertSame(201, $again->status, $again->body);
+        self::assertSame($this->json($first)['reservation']['confirmation_code'], $this->json($again)['reservation']['confirmation_code']);
+        self::assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM reservations')->fetchColumn());
+        self::assertCount(1, $this->mailer->sent, 'the confirmation email is sent once');
+
+        $bad = $this->customerBooking() + ['request_id' => 'short'];
+        self::assertSame(422, $this->request('POST', '/api/reservations', $bad)->status);
     }
 
     public function testBookingRefusesCrossSiteOrigins(): void
     {
         $body = $this->customerBooking();
         self::assertSame(403, $this->request('POST', '/api/reservations', $body, ['Origin' => 'https://evil.example.net'])->status);
+        self::assertSame('cross_site', $this->json($this->request('POST', '/api/reservations', $body, ['Origin' => 'https://evil.example.net', 'Host' => 'evil.example.net']))['error']['code'], 'the Host header is not trusted');
         self::assertSame(403, $this->request('POST', '/api/reservations', $body, ['no-origin' => '1'])->status);
         self::assertSame(201, $this->request('POST', '/api/reservations', $body, ['no-origin' => '1', 'Referer' => 'http://localhost/book/?x=1'])->status);
     }

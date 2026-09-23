@@ -6,6 +6,7 @@ namespace ArcadeOS\Domain;
 
 use ArcadeOS\Db\Transaction;
 use ArcadeOS\Payments\PaymentGateway;
+use ArcadeOS\Payments\PaymentLookupFailed;
 use ArcadeOS\Payments\PaymentResult;
 use ArcadeOS\Settings\SettingsRepository;
 use ArcadeOS\Settings\VenueSettings;
@@ -42,7 +43,7 @@ final class Reservations
     }
 
     /** @throws BookingRejected */
-    public function create(BookingRequest $request, BookingRules $rules): Reservation
+    public function create(BookingRequest $request, BookingRules $rules, ?string $requestId = null): Reservation
     {
         $errors = $request->validate($rules->contactRequired);
         if ($errors !== []) {
@@ -70,7 +71,7 @@ final class Reservations
 
         $this->reservations->ensureDayRow($request->localDate);
 
-        return Transaction::run($this->pdo, function () use ($request, $rules, $settings, $tz, $now, $numbersById, $quote, $startUtc, $endUtc, $endMinute, $held, $openMinute): Reservation {
+        return Transaction::run($this->pdo, function () use ($request, $rules, $settings, $tz, $now, $numbersById, $quote, $startUtc, $endUtc, $endMinute, $held, $openMinute, $requestId): Reservation {
             $this->reservations->lockDay($request->localDate);
             $blocks = $this->reservations->blocksForDate($request->localDate, $now, $tz);
             $free = Availability::freeStations(array_keys($numbersById), $blocks, $request->startMinute, $endMinute, $settings->bufferMinutes);
@@ -99,6 +100,7 @@ final class Reservations
                 'created_by' => $rules->createdBy,
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
+                'request_id' => $requestId,
             ], $chosen);
 
             $reservation = $this->reservations->find($id, $tz);
@@ -341,14 +343,14 @@ final class Reservations
     /**
      * Releases overdue holds. With a real payment gateway each hold is first checked for a payment
      * that completed after its response was lost: found and stations still free -> confirmed;
-     * found but stations taken -> refunded; not found -> expired. A payment the provider still
-     * reports as pending keeps the hold for up to a day, then the hold is expired anyway.
+     * found but stations taken -> refunded; positively not found -> expired. A payment the provider still
+     * reports as pending keeps the hold for up to a day; a lookup that fails keeps it until one succeeds.
      *
-     * @return array{confirmed:int,expired:int,refunded:int}
+     * @return array{confirmed:int,expired:int,refunded:int,kept:int}
      */
     public function reconcileHolds(PaymentGateway $gateway, Logger $logger): array
     {
-        $report = ['confirmed' => 0, 'expired' => 0, 'refunded' => 0];
+        $report = ['confirmed' => 0, 'expired' => 0, 'refunded' => 0, 'kept' => 0];
         if ($gateway->mode() === 'none') {
             $report['expired'] = $this->expireHolds();
 
@@ -356,10 +358,19 @@ final class Reservations
         }
         $now = $this->clock->now();
         foreach ($this->reservations->overdueHolds($now) as $hold) {
-            $payment = $gateway->findByReference($hold['code'], $hold['createdAt']);
+            try {
+                $payment = $gateway->findByReference($hold['code'], $hold['createdAt']);
+            } catch (PaymentLookupFailed $error) {
+                // Not knowing is not the same as "no payment": keep the hold and ask again next run.
+                $logger->warning('payment lookup failed; hold kept', ['reservation' => $hold['id'], 'error' => $error->getMessage()]);
+                $report['kept']++;
+
+                continue;
+            }
             if ($payment === null || $payment->outcome !== PaymentResult::PAID) {
                 $stale = $hold['holdExpiresAt'] <= $now->modify('-1 day');
                 if ($payment !== null && !$stale) {
+                    $report['kept']++;
                     $logger->warning('payment still pending at the provider; hold kept', ['reservation' => $hold['id']]);
                     continue;
                 }

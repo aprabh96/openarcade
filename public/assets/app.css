@@ -80,3 +80,4 @@ th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color
 .badge.confirmed { background: #dcfce7; color: #166534; }
 .badge.held { background: #ede9fe; color: #5b21b6; }
 .badge.cancelled, .badge.expired, .badge.payment_failed { background: #fee2e2; color: #991b1b; }
+.card.setup { max-width: 560px; margin: 2rem auto; }

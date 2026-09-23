@@ -48,13 +48,21 @@ final class AuthAndLimitsTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $throttle->record('owner', 'client-a', false, $now);
         }
-        self::assertTrue($throttle->isBlocked('owner', 'client-z', $now), 'username blocked from anywhere');
+        self::assertTrue($throttle->isBlocked('owner', 'client-a', $now), 'the guessing client is blocked for that username');
+        self::assertFalse($throttle->isBlocked('owner', 'client-z', $now), 'the real owner elsewhere is not locked out');
         self::assertFalse($throttle->isBlocked('someone-else', 'client-a', $now));
         for ($i = 0; $i < 15; $i++) {
             $throttle->record('user' . $i, 'client-a', false, $now);
         }
         self::assertTrue($throttle->isBlocked('fresh-user', 'client-a', $now), 'client blocked after 20 failures');
-        self::assertFalse($throttle->isBlocked('owner', 'client-z', $now->modify('+16 minutes')));
+        self::assertFalse($throttle->isBlocked('owner', 'client-a', $now->modify('+16 minutes')));
+
+        for ($i = 0; $i < 100; $i++) {
+            $throttle->record('owner', 'bot-' . $i, false, $now);
+        }
+        self::assertTrue($throttle->isBlocked('owner', 'client-z', $now), 'a distributed guess is stopped');
+        self::assertSame(105, $throttle->clear('owner'));
+        self::assertFalse($throttle->isBlocked('owner', 'client-z', $now), 'admin:unlock clears it');
     }
 
     public function testAdminAuthLoginCurrentIdleAndLogout(): void

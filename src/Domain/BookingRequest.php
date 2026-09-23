@@ -35,7 +35,7 @@ final class BookingRequest
         }
         foreach (['first_name' => $this->firstName, 'last_name' => $this->lastName] as $field => $value) {
             $length = mb_strlen(trim($value));
-            if ($length < 1 || $length > 60) {
+            if ($length < 1 || $length > 60 || self::hasControlCharacters($value)) {
                 $errors[$field] = 'Must be 1 to 60 characters.';
             }
         }
@@ -51,10 +51,18 @@ final class BookingRequest
         if ($phoneBad) {
             $errors['phone'] = 'Enter a valid phone number.';
         }
-        if ($this->comments !== null && mb_strlen($this->comments) > 1000) {
+        if ($this->comments !== null && (mb_strlen($this->comments) > 1000 || self::hasControlCharacters($this->comments, true))) {
             $errors['comments'] = 'Must be 1000 characters or fewer.';
         }
 
         return $errors;
+    }
+
+    /** Line breaks and tabs are allowed only where $multiline says so; other control characters never. */
+    private static function hasControlCharacters(string $value, bool $multiline = false): bool
+    {
+        $pattern = $multiline ? '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/' : '/[\x00-\x1F\x7F]/';
+
+        return preg_match($pattern, $value) === 1;
     }
 }

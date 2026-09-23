@@ -14,18 +14,21 @@ first install.
 3. **Configuration.** Copy `.env.example` to `.env` next to `composer.json` and set:
    `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`, a random 64-character
    `APP_KEY`, the `DB_*` values, and a second random 64-character `SETUP_TOKEN`.
-4. **Install.** Open `https://your-domain/setup.php?token=<SETUP_TOKEN>`, fill in the venue name,
+4. **Install.** Open `https://your-domain/setup.php`, paste the `SETUP_TOKEN` value into the form (it
+   is never put in the URL, so it stays out of logs), then fill in the venue name,
    timezone, station count and the first admin account, submit once. Then remove `SETUP_TOKEN` from
    `.env`; the page refuses to run again anyway once an admin exists.
 5. **Cron.** In the panel add: every 5 minutes `php /home/<account>/booking/bin/console holds:release`
    and monthly `php /home/<account>/booking/bin/console privacy:purge --older-than-months=12`. Use the
    PHP 8 binary your host documents (often `/usr/local/bin/php` or `ea-php82`).
 6. **Verify.** `https://your-domain/book/` loads, `/admin/` shows the sign-in page, and
-   `/.env`, `/src/Http/App.php`, `/storage/logs/app.log` return 403 or 404. If the host offers a
+   `/.env`, `/src/Http/App.php`, `/storage/logs/app.log` return 403 or 404. These protections are
+   Apache `.htaccess` rules; on an nginx-only host the document root must be `public/`. If the host offers a
    terminal, `php bin/console doctor --online` checks all of this for you.
 
 Email: most shared hosts allow PHP `mail()`, so `MAIL_DRIVER=mail` with `MAIL_FROM_ADDRESS` at your
 domain usually works. For reliable delivery use `MAIL_DRIVER=smtp` with the host's SMTP account.
 
 Upgrade: upload the new zip over the old files, keeping `.env` and `storage/`, then run
-`php bin/console migrate` from the terminal or a one-off cron job.
+`php bin/console migrate` from the terminal, or add it as a one-off cron job and remove the job after
+it has run once.

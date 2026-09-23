@@ -59,7 +59,8 @@ final class Application
                 'migrate' => $this->migrate(),
                 'install' => $this->install($options),
                 'admin:create' => $this->createAdmin($options),
-                'seed:demo' => $this->seedDemo(),
+                'admin:unlock' => $this->unlockAdmin($options),
+                'seed:demo' => $this->seedDemo($options),
                 'holds:release' => $this->releaseHolds(),
                 'privacy:purge' => $this->purge($options),
                 'help' => $this->help(0),
@@ -85,7 +86,8 @@ final class Application
             '                 --admin-user= --admin-password= [--stations=4] [--venue=] [--timezone=]',
             '                 (the password may come from the ARCADEOS_ADMIN_PASSWORD environment variable)',
             '  admin:create   Create another admin: --admin-user= --admin-password=',
-            '  seed:demo      Add fake reservations for demos and screenshots',
+            '  admin:unlock   Clear failed sign-in attempts for a username: --admin-user=',
+            '  seed:demo      Add fake reservations for demos and screenshots (refused when real bookings exist unless --force)',
             '  holds:release  Release unpaid holds (checks the payment provider first when PAYMENT_MODE is not none)',
             '  privacy:purge  Anonymise guest details of past reservations: --older-than-months=12',
             '  doctor         Check the installation: [--online] [--json]. Exit code 1 when anything fails.',
@@ -140,13 +142,32 @@ final class Application
         return 0;
     }
 
+    /** @param array<string,string> $options */
+    private function unlockAdmin(array $options): int
+    {
+        $username = trim($options['admin-user'] ?? '');
+        if ($username === '') {
+            throw new \InvalidArgumentException('--admin-user is required.');
+        }
+        $removed = (new \ArcadeOS\Auth\LoginThrottle($this->pdo))->clear($username);
+        ($this->write)("Cleared {$removed} failed sign-in attempt(s) for {$username}.");
+
+        return 0;
+    }
+
     private function installer(): Installer
     {
         return new Installer($this->pdo, $this->migrationsDir, $this->clock);
     }
 
-    private function seedDemo(): int
+    /** @param array<string,string> $options */
+    private function seedDemo(array $options): int
     {
+        $query = $this->pdo->query("SELECT COUNT(*) FROM reservations WHERE comments IS NULL OR comments <> 'Demo booking'");
+        $real = $query === false ? 0 : (int) $query->fetchColumn();
+        if ($real > 0 && !isset($options['force'])) {
+            throw new \InvalidArgumentException("The database already holds {$real} real reservation(s); demo bookings would land in the live calendar. Use --force only on a test copy.");
+        }
         $service = Reservations::build($this->pdo, $this->clock);
         $tz = (new SettingsRepository($this->pdo))->load()->tz();
         $today = $this->clock->now()->setTimezone($tz);
@@ -179,10 +200,11 @@ final class Application
     {
         $report = Reservations::build($this->pdo, $this->clock)->reconcileHolds($this->gateway, $this->logger);
         ($this->write)(sprintf(
-            'Holds: %d expired, %d confirmed from late payments, %d refunded.',
+            'Holds: %d expired, %d confirmed from late payments, %d refunded, %d kept for the next run.',
             $report['expired'],
             $report['confirmed'],
             $report['refunded'],
+            $report['kept'],
         ));
 
         return 0;

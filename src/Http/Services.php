@@ -83,7 +83,7 @@ final class Services
             $notifier,
             $mailer,
             new BookingFlow($reservations, $repository, $settings, $gateway, $mailer, $logger),
-            new BookingToken($config->appKey()),
+            new BookingToken($config->appKey(), $clock),
             new AdminAuth($pdo, $clock, $config->sessionIdleMinutes()),
             new LoginThrottle($pdo),
             new RateLimiter($pdo),

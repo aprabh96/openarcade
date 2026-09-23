@@ -14,7 +14,7 @@ final class ReservationRepository
     private const INSERTABLE = [
         'status', 'first_name', 'last_name', 'email', 'phone', 'comments', 'local_date', 'start_utc',
         'end_utc', 'duration_minutes', 'station_count', 'subtotal_cents', 'tax_cents', 'total_cents',
-        'currency', 'hold_expires_at', 'created_by', 'created_at', 'updated_at',
+        'currency', 'hold_expires_at', 'created_by', 'created_at', 'updated_at', 'request_id',
     ];
 
     public function __construct(private PDO $pdo)
@@ -86,6 +86,9 @@ final class ReservationRepository
             } catch (\PDOException $error) {
                 $duplicateCode = (int) ($error->errorInfo[1] ?? 0) === 1062
                     && str_contains($error->getMessage(), 'uq_reservations_code');
+                if ((int) ($error->errorInfo[1] ?? 0) === 1062 && str_contains($error->getMessage(), 'uq_reservations_request_id')) {
+                    throw new DuplicateRequest();
+                }
                 if (!$duplicateCode || $attempt >= 5) {
                     throw $error;
                 }
@@ -95,6 +98,15 @@ final class ReservationRepository
         $this->replaceStations($id, $stationIds);
 
         return $id;
+    }
+
+    public function idForRequest(string $requestId): ?int
+    {
+        $statement = $this->pdo->prepare('SELECT id FROM reservations WHERE request_id = ?');
+        $statement->execute([$requestId]);
+        $id = $statement->fetchColumn();
+
+        return $id === false ? null : (int) $id;
     }
 
     public function find(int $id, \DateTimeZone $tz, bool $forUpdate = false): ?Reservation
@@ -244,7 +256,7 @@ final class ReservationRepository
     {
         $statement = $this->pdo->prepare(
             "UPDATE reservations SET first_name = 'Removed', last_name = '', email = '', phone = '', comments = NULL, updated_at = ? "
-            . "WHERE local_date < ? AND email <> ''"
+            . "WHERE local_date < ? AND email <> '' AND status IN ('confirmed', 'cancelled', 'expired', 'payment_failed')"
         );
         $statement->execute([$nowUtc->format('Y-m-d H:i:s'), $localDate]);
 

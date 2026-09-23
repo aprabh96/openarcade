@@ -110,7 +110,7 @@ final class App
             );
         }
 
-        return $this->headers->apply($response);
+        return $this->headers->apply($response, $request->secure);
     }
 
     public static function rejected(BookingRejected $rejected): Response

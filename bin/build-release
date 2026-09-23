@@ -5,6 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${1:-$(git -C "$ROOT" describe --tags --always 2>/dev/null || echo dev)}"
+VERSION="$(printf '%s' "$VERSION" | tr -c 'A-Za-z0-9._-' '-')"
 NAME="vr-arcade-os-${VERSION}"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT

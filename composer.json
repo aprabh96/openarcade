@@ -8,6 +8,7 @@
     "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
+    "ext-openssl": "*",
     "ext-pdo": "*",
     "ext-pdo_mysql": "*",
     "phpmailer/phpmailer": "^6.9"
@@ -17,9 +18,16 @@
     "phpstan/phpstan": "^1.11",
     "phpunit/phpunit": "^10.5"
   },
-  "autoload": { "psr-4": { "ArcadeOS\\": "src/" } },
+  "autoload": {
+    "psr-4": {
+      "ArcadeOS\\": "src/"
+    }
+  },
   "autoload-dev": {
-    "psr-4": { "ArcadeOS\\Tests\\": "tests/", "ArcadeOS\\Tools\\": "tools/" }
+    "psr-4": {
+      "ArcadeOS\\Tests\\": "tests/",
+      "ArcadeOS\\Tools\\": "tools/"
+    }
   },
   "scripts": {
     "test": "@php vendor/bin/phpunit",
@@ -29,7 +37,15 @@
     "cs": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
     "cs:fix": "@php vendor/bin/php-cs-fixer fix",
     "clean-check": "@php bin/check-clean",
-    "check": ["@cs", "@stan", "@test", "@clean-check", "@composer audit"]
+    "check": [
+      "@cs",
+      "@stan",
+      "@test",
+      "@clean-check",
+      "@composer audit"
+    ]
   },
-  "config": { "sort-packages": true }
+  "config": {
+    "sort-packages": true
+  }
 }

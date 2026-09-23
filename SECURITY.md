@@ -17,13 +17,13 @@ acknowledgement within three days and a fix or a plan within two weeks for confi
 ## Built-in protections
 
 Prepared statements for every query; CSRF tokens on admin writes; signed, session-bound booking
-tokens and same-origin checks on public bookings; per-client rate limits and per-username login
-throttling; `password_hash` with a 12-character minimum; session regeneration and idle timeout;
-`Secure`/`HttpOnly`/`SameSite=Lax` cookies; a Content Security Policy that only allows scripts from
+tokens and same-origin checks on public bookings; request ids so a retried booking is never charged
+twice; per-client rate limits and layered login throttling (`admin:unlock` to recover); `password_hash` with a 12-character minimum; session regeneration and idle timeout;
+`Secure`/`HttpOnly`/`SameSite=Lax` admin cookies; HSTS over HTTPS; a Content Security Policy that only allows scripts from
 the site and Square's CDN; UIs that never use `innerHTML` with data; logs without personal data;
 hashed IP addresses; `privacy:purge` for old reservations; and `php bin/console doctor --online`,
 which verifies from outside that private files are not served.
 
 ## Supported versions
 
-The latest release. Upgrade with `docs/agent-prompts/upgrade.md`.
+Only the newest release gets fixes. Upgrade with `docs/agent-prompts/upgrade.md`.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ArcadeOS\Tests\Unit\Payments;
 
+use ArcadeOS\Payments\PaymentLookupFailed;
 use ArcadeOS\Payments\PaymentResult;
 use ArcadeOS\Payments\SquareGateway;
 use ArcadeOS\Support\Logger;
@@ -59,11 +60,13 @@ final class SquareGatewayTest extends TestCase
         self::assertNull($result->paymentId);
     }
 
-    public function testOurOwnBadRequestIsNotACharge(): void
+    public function testConfigurationErrorsAreNotReportedAsDeclinedCards(): void
     {
         $gateway = $this->gateway();
-        $this->http->queue(400, ['errors' => [['category' => 'INVALID_REQUEST_ERROR', 'code' => 'BAD_REQUEST']]]);
-        self::assertSame(PaymentResult::DECLINED, $gateway->charge(100, 'USD', 't', 'k', 'R')->outcome);
+        $this->http->queue(401, ['errors' => [['category' => 'AUTHENTICATION_ERROR', 'code' => 'UNAUTHORIZED']]]);
+        $result = $gateway->charge(100, 'USD', 't', 'k', 'R');
+        self::assertSame(PaymentResult::ERROR, $result->outcome);
+        self::assertStringContainsString('UNAUTHORIZED', $result->message);
     }
 
     public function testTransportFailureRetriesOnceWithTheSameKeyThenReportsUnknown(): void
@@ -83,7 +86,11 @@ final class SquareGatewayTest extends TestCase
     {
         $gateway = $this->gateway();
         $this->http->queue(503, ['errors' => [['category' => 'API_ERROR', 'code' => 'SERVICE_UNAVAILABLE']]]);
+        $this->http->queue(503, ['errors' => [['category' => 'API_ERROR', 'code' => 'SERVICE_UNAVAILABLE']]]);
         self::assertSame(PaymentResult::UNKNOWN, $gateway->charge(100, 'USD', 't', 'k', 'R')->outcome);
+        self::assertCount(2, $this->http->requests, 'a 5xx is retried once');
+        $this->http->queue(500, '')->queue(200, ['payment' => ['id' => 'PAY9', 'status' => 'COMPLETED']]);
+        self::assertSame('PAY9', $gateway->charge(100, 'USD', 't', 'k', 'R')->paymentId, 'the retry can succeed');
         $this->http->queue(200, ['payment' => ['id' => 'PAY3', 'status' => 'PENDING']]);
         self::assertSame(PaymentResult::UNKNOWN, $gateway->charge(100, 'USD', 't', 'k', 'R')->outcome);
     }
@@ -97,11 +104,30 @@ final class SquareGatewayTest extends TestCase
         ]]);
         $found = $gateway->findByReference('ABCD2345', new \DateTimeImmutable('2026-09-21 14:00:00', new \DateTimeZone('UTC')));
         self::assertSame('MINE', $found?->paymentId);
-        self::assertStringContainsString('begin_time=2026-09-21T14%3A00%3A00Z', $this->http->requests[0]['url']);
+        self::assertStringContainsString('begin_time=2026-09-21T13%3A55%3A00Z', $this->http->requests[0]['url']);
         self::assertStringContainsString('location_id=LOC123', $this->http->requests[0]['url']);
 
         $this->http->queue(200, ['payments' => []]);
         self::assertNull($gateway->findByReference('NONE0000', new \DateTimeImmutable('now', new \DateTimeZone('UTC'))));
+    }
+
+    public function testFindByReferenceFollowsPagesAndReportsFailures(): void
+    {
+        $gateway = $this->gateway();
+        $this->http->queue(200, ['payments' => [['id' => 'A', 'status' => 'COMPLETED', 'reference_id' => 'OTHER']], 'cursor' => 'next-page']);
+        $this->http->queue(200, ['payments' => [['id' => 'MINE', 'status' => 'COMPLETED', 'reference_id' => 'ABCD2345']]]);
+        self::assertSame('MINE', $gateway->findByReference('ABCD2345', new \DateTimeImmutable('2026-09-21 14:00:00'))?->paymentId);
+        self::assertStringContainsString('cursor=next-page', $this->http->requests[1]['url']);
+
+        foreach ([fn () => $this->http->queue(503, ''), fn () => $this->http->queueFailure('timeout')] as $failure) {
+            $failure();
+            try {
+                $gateway->findByReference('ABCD2345', new \DateTimeImmutable('2026-09-21 14:00:00'));
+                self::fail('expected PaymentLookupFailed');
+            } catch (PaymentLookupFailed) {
+                self::assertTrue(true);
+            }
+        }
     }
 
     public function testRefundPostsFullAmountWithAnIdempotencyKey(): void

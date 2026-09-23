@@ -14,6 +14,7 @@ const state = {
   stations: 1,
   start: null,
   bookingToken: null,
+  requestId: null,
   card: null,
   submitting: false,
 };
@@ -186,6 +187,7 @@ async function submit(event) {
   const form = $('details');
   const body = {
     booking_token: state.bookingToken,
+    request_id: state.requestId,
     date: state.date,
     start_minute: state.start,
     duration_minutes: state.duration,
@@ -196,27 +198,34 @@ async function submit(event) {
     phone: form.phone.value.trim(),
     comments: form.comments.value.trim() || null,
   };
+  // One id per booking attempt: a retry after a lost answer reuses it, so the card is never charged twice.
+  if (!state.requestId) state.requestId = crypto.randomUUID();
+  body.request_id = state.requestId;
   state.submitting = true;
   $('submit').disabled = true;
   $('submit').textContent = 'Booking…';
   try {
     body.payment_token = await paymentToken();
     const data = await api('POST', '/api/reservations', body);
+    state.requestId = null;
     showDone(data.reservation);
   } catch (error) {
+    if (error instanceof ApiError && (error.code === 'card' || Object.keys(error.fields).length)) state.requestId = null;
     if (error instanceof ApiError && error.code === 'card') {
       showFieldErrors({ payment_token: error.message });
     } else if (error instanceof ApiError && Object.keys(error.fields).length) {
       showFieldErrors(error.fields);
     } else if (error instanceof ApiError && error.code === 'slot_unavailable') {
-      showFormError(error.message);
-      await refreshBookingToken();
+      state.requestId = null;
       show('step-when');
-      loadSlots();
-    } else if (error instanceof ApiError && error.status === 403) {
+      await loadSlots();
+      $('slots-status').textContent = `${error.message} ${$('slots-status').textContent}`;
+    } else if (error instanceof ApiError && error.code === 'booking_expired') {
       await refreshBookingToken();
       showFormError('Your session was refreshed. Please press Confirm again.');
     } else {
+      // Keep the request id only when the outcome is unknown; anything else starts a fresh attempt.
+      if (!(error instanceof ApiError) || !['payment_unknown', 'network'].includes(error.code)) state.requestId = null;
       showFormError(error.message || 'Something went wrong. Please try again.');
     }
   } finally {
@@ -284,5 +293,5 @@ async function boot() {
 
 $('details').addEventListener('submit', submit);
 $('back').addEventListener('click', () => show('step-when'));
-$('again').addEventListener('click', () => { $('details').reset(); clearFieldErrors(); show('step-when'); loadSlots(); });
+$('again').addEventListener('click', () => { state.requestId = null; $('details').reset(); clearFieldErrors(); show('step-when'); loadSlots(); });
 boot();

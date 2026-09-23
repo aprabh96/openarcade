@@ -24,7 +24,10 @@ final class CurlHttpClient implements HttpClient
             CURLOPT_TIMEOUT => $timeoutSeconds,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_FOLLOWLOCATION => false,
+            // Follow http -> https and similar redirects, but never hand the Authorization header to another host.
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
+            CURLOPT_UNRESTRICTED_AUTH => false,
             CURLOPT_USERAGENT => 'ArcadeOS/1.0',
         ]);
         if ($body !== null) {

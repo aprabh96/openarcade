@@ -14,6 +14,7 @@ use ArcadeOS\Http\Router;
 use ArcadeOS\Http\SecurityHeaders;
 use ArcadeOS\Support\Config;
 use ArcadeOS\Support\Env;
+use ArcadeOS\Support\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 final class HttpPrimitivesTest extends TestCase
@@ -68,20 +69,29 @@ final class HttpPrimitivesTest extends TestCase
         self::assertNotSame($token, Csrf::rotate($session));
     }
 
-    public function testBookingTokensAreSignedSessionBoundAndRotate(): void
+    public function testBookingTokensAreSignedAndExpire(): void
     {
-        $keyed = new BookingToken('key-one-0123456789abcdef0123456789abc');
-        $session = new ArraySession();
-        $token = $keyed->issue($session);
-        self::assertMatchesRegularExpression('/^[a-f0-9]{32}\.[a-f0-9]{64}$/', $token);
-        self::assertTrue($keyed->verify($session, $token));
-        self::assertFalse($keyed->verify(new ArraySession(), $token), 'another session');
-        self::assertFalse((new BookingToken('key-two-0123456789abcdef0123456789abc'))->verify($session, $token), 'another key');
-        [$nonce] = explode('.', $token);
-        self::assertFalse($keyed->verify($session, $nonce . '.' . str_repeat('0', 64)));
-        $keyed->rotate($session);
-        self::assertFalse($keyed->verify($session, $token));
-        self::assertNotSame($token, $keyed->issue($session));
+        $clock = new FixedClock('2026-09-21 14:00:00');
+        $keyed = new BookingToken('key-one-0123456789abcdef0123456789abc', $clock);
+        $token = $keyed->issue();
+        self::assertMatchesRegularExpression('/^\d+\.[a-f0-9]{32}\.[a-f0-9]{64}$/', $token);
+        self::assertTrue($keyed->verify($token));
+        self::assertFalse((new BookingToken('key-two-0123456789abcdef0123456789abc', $clock))->verify($token), 'another key');
+        [$time, $nonce] = explode('.', $token);
+        self::assertFalse($keyed->verify($time . '.' . $nonce . '.' . str_repeat('0', 64)), 'forged signature');
+        self::assertFalse($keyed->verify(((int) $time + 3600) . '.' . $nonce . '.' . explode('.', $token)[2]), 'altered time');
+        self::assertFalse($keyed->verify(null));
+        self::assertNotSame($token, $keyed->issue());
+        $clock->advanceMinutes(4 * 60 + 1);
+        self::assertFalse($keyed->verify($token), 'expired');
+    }
+
+    public function testForwardedForTakesTheAddressTheProxyAppended(): void
+    {
+        $_SERVER = ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/api/venue', 'REMOTE_ADDR' => '10.0.0.2', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4, 198.51.100.7'];
+        self::assertSame('198.51.100.7', Request::fromGlobals(new ArraySession(), true)->ip, 'the client-supplied left entry is ignored');
+        self::assertSame('10.0.0.2', Request::fromGlobals(new ArraySession(), false)->ip);
+        $_SERVER = [];
     }
 
     public function testSecurityHeadersIncludeEmbedOrigins(): void
@@ -89,6 +99,9 @@ final class HttpPrimitivesTest extends TestCase
         $response = (new SecurityHeaders(['https://venue.example.com']))->apply(Response::json([]));
         self::assertStringContainsString("frame-ancestors 'self' https://venue.example.com", $response->headers['Content-Security-Policy']);
         self::assertSame('no-store', $response->headers['Cache-Control']);
+        self::assertArrayNotHasKey('Strict-Transport-Security', $response->headers, 'no HSTS over plain http');
+        $https = (new SecurityHeaders([]))->apply(Response::json([]), true);
+        self::assertStringStartsWith('max-age=', $https->headers['Strict-Transport-Security']);
         $alone = (new SecurityHeaders([]))->apply(Response::json([]));
         self::assertStringContainsString("frame-ancestors 'self';", $alone->headers['Content-Security-Policy']);
     }

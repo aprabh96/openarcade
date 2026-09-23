@@ -6,12 +6,19 @@ namespace ArcadeOS\Auth;
 
 use PDO;
 
-/** Slows password guessing: a username or a client that fails too often must wait. */
+/**
+ * Slows password guessing without letting a stranger lock the owner out. Three counters over a
+ * 15 minute window: a client that fails for one username is blocked for that username after 5
+ * tries; a client that fails for any username is blocked after 20; and a username that fails from
+ * anywhere is blocked after 100, which stops a distributed guess while staying out of reach of a
+ * single nuisance. `bin/console admin:unlock` clears the counters for a username.
+ */
 final class LoginThrottle
 {
     public const WINDOW_MINUTES = 15;
-    public const MAX_PER_USERNAME = 5;
+    public const MAX_PER_USERNAME_AND_CLIENT = 5;
     public const MAX_PER_CLIENT = 20;
+    public const MAX_PER_USERNAME = 100;
 
     public function __construct(private PDO $pdo)
     {
@@ -21,16 +28,22 @@ final class LoginThrottle
     {
         $since = $nowUtc->modify('-' . self::WINDOW_MINUTES . ' minutes')->format('Y-m-d H:i:s');
 
-        $byUser = $this->pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE username = ? AND succeeded = 0 AND created_at > ?');
-        $byUser->execute([$username, $since]);
-        if ((int) $byUser->fetchColumn() >= self::MAX_PER_USERNAME) {
+        $pair = $this->pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE username = ? AND ip_hash = ? AND succeeded = 0 AND created_at > ?');
+        $pair->execute([$username, $ipHash, $since]);
+        if ((int) $pair->fetchColumn() >= self::MAX_PER_USERNAME_AND_CLIENT) {
             return true;
         }
 
         $byClient = $this->pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip_hash = ? AND succeeded = 0 AND created_at > ?');
         $byClient->execute([$ipHash, $since]);
+        if ((int) $byClient->fetchColumn() >= self::MAX_PER_CLIENT) {
+            return true;
+        }
 
-        return (int) $byClient->fetchColumn() >= self::MAX_PER_CLIENT;
+        $byUser = $this->pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE username = ? AND succeeded = 0 AND created_at > ?');
+        $byUser->execute([$username, $since]);
+
+        return (int) $byUser->fetchColumn() >= self::MAX_PER_USERNAME;
     }
 
     public function record(string $username, string $ipHash, bool $succeeded, \DateTimeImmutable $nowUtc): void
@@ -41,5 +54,14 @@ final class LoginThrottle
             $this->pdo->prepare('DELETE FROM login_attempts WHERE created_at < ?')
                 ->execute([$nowUtc->modify('-1 day')->format('Y-m-d H:i:s')]);
         }
+    }
+
+    /** Forgets every failed attempt for a username. Returns the number of rows removed. */
+    public function clear(string $username): int
+    {
+        $statement = $this->pdo->prepare('DELETE FROM login_attempts WHERE username = ? AND succeeded = 0');
+        $statement->execute([mb_substr($username, 0, 50)]);
+
+        return $statement->rowCount();
     }
 }

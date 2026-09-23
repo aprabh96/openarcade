@@ -195,7 +195,10 @@ final class AdminApi
             $weekday = self::intField($item, 'weekday', "weekdays.{$index}", 0, 6);
             $open = self::intField($item, 'open_minute', "weekdays.{$index}", 0, 1439);
             $close = self::intField($item, 'close_minute', "weekdays.{$index}", 1, 1440);
-            $closed = isset($item['closed']) ? (bool) $item['closed'] : false;
+            $closed = $item['closed'] ?? false;
+            if (!is_bool($closed)) {
+                throw ApiError::validation(["weekdays.{$index}.closed" => 'Must be true or false.']);
+            }
             $this->s->hours->setWeekday($weekday, $open, $close, $closed);
         }
 
@@ -269,22 +272,35 @@ final class AdminApi
     {
         self::assertJson($request);
         $count = $request->int('count');
-        if ($count !== null) {
-            $this->s->stations->syncCount($count);
+        if ($count !== null && ($count < 1 || $count > 200)) {
+            throw ApiError::validation(['count' => 'Must be a whole number from 1 to 200.']);
         }
         $labels = $request->body['labels'] ?? [];
         if (!is_array($labels)) {
             throw ApiError::validation(['labels' => 'Must be an object of station number to label.']);
         }
-        $active = $this->s->stations->activeNumbersById();
+        $highest = $count ?? max([0, ...$this->s->stations->activeNumbersById()]);
+        $apply = [];
         foreach ($labels as $number => $label) {
-            if (preg_match('/^\d{1,3}$/', (string) $number) !== 1 || !in_array((int) $number, $active, true)) {
+            if (preg_match('/^\d{1,3}$/', (string) $number) !== 1 || (int) $number < 1) {
+                throw ApiError::validation(['labels' => "Station {$number} is not a station number."]);
+            }
+            if ((int) $number > $highest) {
+                if ($count !== null) {
+                    continue; // removed in this same save
+                }
                 throw ApiError::validation(['labels' => "Station {$number} is not active."]);
             }
-            if (!is_string($label)) {
-                throw ApiError::validation(['labels' => "Label for station {$number} must be text."]);
+            if (!is_string($label) || trim($label) === '' || mb_strlen(trim($label)) > 60) {
+                throw ApiError::validation(['labels' => "Label for station {$number} must be 1 to 60 characters."]);
             }
-            $this->s->stations->setLabel((int) $number, $label);
+            $apply[(int) $number] = $label;
+        }
+        if ($count !== null) {
+            $this->s->stations->syncCount($count);
+        }
+        foreach ($apply as $number => $label) {
+            $this->s->stations->setLabel($number, $label);
         }
 
         return $this->getStations($request, $user);

@@ -128,7 +128,7 @@ final class PublicApi
     {
         $this->rateLimit($request, 'token', 60, 600);
 
-        return Response::json(['token' => $this->s->bookingToken->issue($request->session)]);
+        return Response::json(['token' => $this->s->bookingToken->issue()]);
     }
 
     public function createReservation(Request $request): Response
@@ -138,8 +138,8 @@ final class PublicApi
         if ($request->malformedBody) {
             throw ApiError::badRequest('The request body is not valid JSON.');
         }
-        if (!$this->s->bookingToken->verify($request->session, $request->string('booking_token'))) {
-            throw ApiError::forbidden('Your booking session has expired. Please reload the page and try again.');
+        if (!$this->s->bookingToken->verify($request->string('booking_token'))) {
+            throw new ApiError('booking_expired', 'Your booking session has expired. Please reload the page and try again.', 403);
         }
 
         $booking = new BookingRequest(
@@ -153,8 +153,11 @@ final class PublicApi
             $request->string('phone') ?? '',
             $request->string('comments'),
         );
-        $row = $this->s->flow->book($booking, $request->string('payment_token'));
-        $this->s->bookingToken->rotate($request->session);
+        $requestId = $request->string('request_id');
+        if ($requestId !== null && preg_match('/^[A-Za-z0-9-]{16,64}$/', $requestId) !== 1) {
+            throw ApiError::validation(['request_id' => 'Must be 16 to 64 letters, digits or dashes.']);
+        }
+        $row = $this->s->flow->book($booking, $request->string('payment_token'), $requestId);
 
         return Response::json(['reservation' => self::publicView($row)], 201);
     }
@@ -185,16 +188,12 @@ final class PublicApi
             $origin = $referer === null ? null : self::originOf($referer);
         }
         if ($origin === null) {
-            throw ApiError::forbidden('Cross-site request refused.');
+            throw new ApiError('cross_site', 'Cross-site request refused. Reload the booking page and try again.', 403);
         }
         $origin = strtolower(rtrim($origin, '/'));
         $allowed = [strtolower(self::originOf($this->s->config->appUrl()) ?? '')];
-        $host = $request->header('Host');
-        if ($host !== null) {
-            $allowed[] = strtolower(($request->secure ? 'https' : 'http') . '://' . $host);
-        }
         if (!in_array($origin, $allowed, true)) {
-            throw ApiError::forbidden('Cross-site request refused.');
+            throw new ApiError('cross_site', 'Cross-site request refused. Check APP_URL matches the address in the browser.', 403);
         }
     }
 

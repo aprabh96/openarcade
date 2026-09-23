@@ -72,8 +72,9 @@ final class Doctor
         $envFile = $this->config->rootDir() . '/.env';
         $this->add('env.file', is_file($envFile) ? 'pass' : 'warn', is_file($envFile) ? 'found' : 'No .env file; settings must come from real environment variables.');
         try {
-            $this->config->appKey();
-            $this->add('env.app_key', 'pass', 'set');
+            $key = $this->config->appKey();
+            $placeholder = str_contains($key, 'not-for-production') || str_contains($key, 'change-me');
+            $this->add('env.app_key', $placeholder ? 'fail' : 'pass', $placeholder ? 'APP_KEY is a published example value. Generate a new one with: php -r "echo bin2hex(random_bytes(32));"' : 'set');
         } catch (\RuntimeException $error) {
             $this->add('env.app_key', 'fail', $error->getMessage() . ' Generate one with: php -r "echo bin2hex(random_bytes(32));"');
         }
@@ -89,7 +90,7 @@ final class Doctor
             $this->add('env.embed_origins', 'fail', $error->getMessage());
         }
         $token = $this->config->setupToken();
-        $this->add('env.setup_token', $token === null || $token === '' ? 'pass' : 'warn', $token === null || $token === '' ? 'not set' : 'SETUP_TOKEN is still set; remove it from .env once setup is done.');
+        $this->add('env.setup_token', $token === null || $token === '' ? 'pass' : ($this->pdo !== null && $this->count('admins') > 0 ? 'fail' : 'warn'), $token === null || $token === '' ? 'not set' : 'SETUP_TOKEN is still set; remove it from .env once setup is done.');
         $this->add('env.trust_proxy', $this->config->trustProxy() ? 'warn' : 'pass', $this->config->trustProxy() ? 'TRUST_PROXY is on; only correct behind a reverse proxy that overwrites X-Forwarded-For.' : 'off');
     }
 
@@ -224,6 +225,10 @@ final class Doctor
         $base = $this->config->appUrl();
         foreach (['/.env', '/src/Http/App.php', '/storage/logs/app.log', '/migrations/001_init.sql', '/composer.json'] as $private) {
             $status = $this->status($base . $private);
+            if ($status === 0) {
+                $this->add('web.private' . str_replace('/', '.', $private), 'fail', "Could not reach {$base}{$private} to verify it is private. Check APP_URL and that the site is up.");
+                continue;
+            }
             $this->add('web.private' . str_replace('/', '.', $private), $status === 200 ? 'fail' : 'pass', $status === 200 ? "{$private} is web-accessible. Point the document root at public/ or keep the root .htaccess." : "not served (HTTP {$status})");
         }
         $venue = $this->status($base . '/api/venue');

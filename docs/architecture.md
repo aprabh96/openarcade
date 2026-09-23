@@ -50,8 +50,11 @@ server charges Square with the server-side amount, the reservation uuid as idemp
 the confirmation code as `reference_id`. Paid: `confirmed`. Declined: `payment_failed`, stations
 free again at once. No answer: the hold stays until `holds:release` (cron, every 5 minutes) asks
 Square whether a payment with that reference exists; found and stations still free: confirmed;
-found but stations taken: refunded; not found: expired. A late payment is handled the same way
-whether or not the sweep already ran.
+found but stations taken: refunded; not found: expired. If Square cannot be asked, the hold is kept
+and asked about again on the next run, never expired on a guess. A charge that succeeds after the
+booking became unconfirmable (hold lost, staff cancelled) is refunded. A late payment is handled the
+same way whether or not the sweep already ran. Each booking attempt carries a `request_id`, so a
+retried submission returns the first reservation instead of charging again.
 
 ## Data model
 
@@ -64,7 +67,7 @@ converted with `setTime()` so daylight-saving change days stay correct. Tables: 
 ## Security model
 
 - Admin passwords hashed with `password_hash`, minimum 12 characters, sign-in throttled per
-  username and per client, session id regenerated on login, idle timeout, `Secure`/`HttpOnly`/`SameSite=Lax` cookies.
+  username-and-client, per client and per username (`admin:unlock` recovers), session id regenerated on login, idle timeout, `Secure`/`HttpOnly`/`SameSite=Lax` cookies.
 - CSRF token on every admin write; public bookings need a session-bound signed booking token plus
   a same-origin `Origin`/`Referer`; rate limits per client on booking, token and login.
 - Prepared statements everywhere; UIs insert text with `textContent`; CSP restricts scripts to the

@@ -49,9 +49,11 @@ final class Request
         $secure = isset($server['HTTPS']) && $server['HTTPS'] !== '' && $server['HTTPS'] !== 'off';
         if ($trustProxy) {
             if (isset($headers['x-forwarded-for'])) {
-                $first = trim(explode(',', $headers['x-forwarded-for'])[0]);
-                if (filter_var($first, FILTER_VALIDATE_IP) !== false) {
-                    $ip = $first;
+                // The proxy appends the address it saw; everything to its left came from the client.
+                $parts = explode(',', $headers['x-forwarded-for']);
+                $last = trim((string) end($parts));
+                if (filter_var($last, FILTER_VALIDATE_IP) !== false) {
+                    $ip = $last;
                 }
             }
             if (isset($headers['x-forwarded-proto'])) {

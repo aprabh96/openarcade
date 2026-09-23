@@ -79,7 +79,7 @@ final class PaymentFlowTest extends ApiTestCase
         $this->clock->advanceMinutes(11);
         $this->gateway->lookup = PaymentResult::paid('PAY-LATE');
         $report = $this->services->reservations->reconcileHolds($this->gateway, $this->logger);
-        self::assertSame(['confirmed' => 1, 'expired' => 0, 'refunded' => 0], $report);
+        self::assertSame(['confirmed' => 1, 'expired' => 0, 'refunded' => 0, 'kept' => 0], $report);
         $this->signIn();
         $row = $this->json($this->request('GET', '/api/admin/reservations?date=2026-09-22'))['reservations'][0];
         self::assertSame('confirmed', $row['status']);
@@ -92,7 +92,7 @@ final class PaymentFlowTest extends ApiTestCase
         $this->request('POST', '/api/reservations', $this->paidBooking());
         $this->clock->advanceMinutes(11);
         $this->gateway->lookup = null;
-        self::assertSame(['confirmed' => 0, 'expired' => 1, 'refunded' => 0], $this->services->reservations->reconcileHolds($this->gateway, $this->logger));
+        self::assertSame(['confirmed' => 0, 'expired' => 1, 'refunded' => 0, 'kept' => 0], $this->services->reservations->reconcileHolds($this->gateway, $this->logger));
         $free = $this->json($this->request('GET', '/api/availability?date=2026-09-22&duration=60'));
         self::assertSame(2, array_column($free['slots'], 'free', 'start_minute')[600]);
     }
@@ -108,8 +108,45 @@ final class PaymentFlowTest extends ApiTestCase
         $this->services->reservations->create(VenueFixture::request('2026-09-22', 600, 60, 1, 'sam.okafor@example.com'), BookingRules::customer(false));
         $this->gateway->lookup = PaymentResult::paid('PAY-3');
         $report = $this->services->reservations->reconcileHolds($this->gateway, $this->logger);
-        self::assertSame(['confirmed' => 0, 'expired' => 0, 'refunded' => 1], $report);
+        self::assertSame(['confirmed' => 0, 'expired' => 0, 'refunded' => 1, 'kept' => 0], $report);
         self::assertSame('PAY-3', $this->gateway->refunds[0]['paymentId']);
         self::assertSame(2734, $this->gateway->refunds[0]['amountCents']);
+    }
+
+    public function testAFailedLookupNeverExpiresAPaidHold(): void
+    {
+        $this->gateway->willReturn(PaymentResult::unknown('no answer'));
+        $this->request('POST', '/api/reservations', $this->paidBooking());
+        $this->clock->advanceMinutes(11);
+        $this->gateway->lookupFails = true;
+        self::assertSame(['confirmed' => 0, 'expired' => 0, 'refunded' => 0, 'kept' => 1], $this->services->reservations->reconcileHolds($this->gateway, $this->logger));
+        self::assertSame('held', $this->pdo->query('SELECT status FROM reservations')->fetchColumn(), 'still held, not expired');
+
+        $this->gateway->lookupFails = false;
+        $this->gateway->lookup = PaymentResult::paid('PAY-LATE');
+        self::assertSame(1, $this->services->reservations->reconcileHolds($this->gateway, $this->logger)['confirmed']);
+    }
+
+    public function testARetryAfterAnUnknownOutcomeIsNeverChargedAgain(): void
+    {
+        $this->gateway->willReturn(PaymentResult::unknown('no answer'));
+        $body = $this->paidBooking() + ['request_id' => 'attempt-0123456789abcdef'];
+        self::assertSame(503, $this->request('POST', '/api/reservations', $body)->status);
+        $body['booking_token'] = $this->bookingToken();
+        $retry = $this->request('POST', '/api/reservations', $body);
+        self::assertSame('payment_unknown', $this->json($retry)['error']['code']);
+        self::assertCount(1, $this->gateway->chargeCalls, 'one charge only');
+        self::assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM reservations')->fetchColumn());
+    }
+
+    public function testAPaymentConfigurationErrorFreesTheSlotAndSaysSo(): void
+    {
+        $this->gateway->willReturn(PaymentResult::error('Square refused the request (HTTP 401)'));
+        $response = $this->request('POST', '/api/reservations', $this->paidBooking());
+        self::assertSame(503, $response->status);
+        self::assertSame('payment_unavailable', $this->json($response)['error']['code']);
+        self::assertSame('ERROR', $this->logger->records()[0]['level']);
+        $free = $this->json($this->request('GET', '/api/availability?date=2026-09-22&duration=60'));
+        self::assertSame(2, array_column($free['slots'], 'free', 'start_minute')[600]);
     }
 }

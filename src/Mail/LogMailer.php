@@ -17,11 +17,11 @@ final class LogMailer implements Mailer
     public function send(string $toAddress, string $toName, string $subject, string $text): bool
     {
         $this->sent[] = ['to' => $toAddress, 'name' => $toName, 'subject' => $subject, 'text' => $text];
-        if ($this->file !== null) {
-            $entry = sprintf("=== %s\nTo: %s <%s>\nSubject: %s\n\n%s\n\n", gmdate('Y-m-d\TH:i:s\Z'), $toName, $toAddress, $subject, $text);
-            @file_put_contents($this->file, $entry, FILE_APPEND | LOCK_EX);
+        if ($this->file === null) {
+            return true;
         }
+        $entry = sprintf("=== %s\nTo: %s <%s>\nSubject: %s\n\n%s\n\n", gmdate('Y-m-d\TH:i:s\Z'), $toName, $toAddress, $subject, $text);
 
-        return true;
+        return @file_put_contents($this->file, $entry, FILE_APPEND | LOCK_EX) !== false;
     }
 }

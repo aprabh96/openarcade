@@ -4,51 +4,46 @@ declare(strict_types=1);
 
 namespace ArcadeOS\Auth;
 
-use ArcadeOS\Http\Session;
+use ArcadeOS\Support\Clock;
 
 /**
- * Proof that a booking request comes from a browser that first loaded the booking page:
- * a random nonce kept in the session, signed with the application key. It is rotated after
- * every accepted booking so a captured token cannot be replayed.
+ * Proof that a booking request comes from a browser that first loaded the booking page: a random
+ * nonce and its issue time, signed with the application key. It is stateless on purpose. The booking
+ * page keeps no session and sets no cookie, so it works inside an iframe on another website in every
+ * browser, and a cross-site page cannot obtain a token because the API sets no CORS headers.
+ * Duplicate submissions are handled by the reservation's idempotency key, not by the token.
  */
 final class BookingToken
 {
-    private const KEY = 'booking_nonce';
+    public const TTL_SECONDS = 4 * 3600;
 
-    public function __construct(private string $appKey)
+    public function __construct(private string $appKey, private Clock $clock)
     {
     }
 
-    public function issue(Session $session): string
+    public function issue(): string
     {
-        $nonce = $session->get(self::KEY);
-        if (!is_string($nonce) || strlen($nonce) !== 32) {
-            $nonce = bin2hex(random_bytes(16));
-            $session->set(self::KEY, $nonce);
-        }
+        $issuedAt = (string) $this->clock->now()->getTimestamp();
+        $nonce = bin2hex(random_bytes(16));
 
-        return $nonce . '.' . $this->sign($nonce);
+        return $issuedAt . '.' . $nonce . '.' . $this->sign($issuedAt, $nonce);
     }
 
-    public function verify(Session $session, ?string $token): bool
+    public function verify(?string $token): bool
     {
-        if (!is_string($token) || preg_match('/^([a-f0-9]{32})\.([a-f0-9]{64})$/', $token, $m) !== 1) {
+        if (!is_string($token) || preg_match('/^(\d{1,12})\.([a-f0-9]{32})\.([a-f0-9]{64})$/', $token, $m) !== 1) {
             return false;
         }
-        $nonce = $session->get(self::KEY);
+        if (!hash_equals($this->sign($m[1], $m[2]), $m[3])) {
+            return false;
+        }
+        $age = $this->clock->now()->getTimestamp() - (int) $m[1];
 
-        return is_string($nonce)
-            && hash_equals($nonce, $m[1])
-            && hash_equals($this->sign($m[1]), $m[2]);
+        return $age >= -60 && $age <= self::TTL_SECONDS;
     }
 
-    public function rotate(Session $session): void
+    private function sign(string $issuedAt, string $nonce): string
     {
-        $session->remove(self::KEY);
-    }
-
-    private function sign(string $nonce): string
-    {
-        return hash_hmac('sha256', 'booking:' . $nonce, $this->appKey);
+        return hash_hmac('sha256', 'booking:' . $issuedAt . ':' . $nonce, $this->appKey);
     }
 }

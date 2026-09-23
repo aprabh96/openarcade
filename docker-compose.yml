@@ -1,23 +1,25 @@
-# Development and small-venue deployment. Values come from .env when present (see .env.example);
-# the defaults below are for local development only. The database host is always the db service.
+# Development and small-venue deployment. Values come from .env (see .env.example). APP_KEY and
+# DB_PASSWORD have no defaults on purpose: the stack refuses to start until you choose them. The
+# database host is always the db service, and the app is bound to localhost until APP_BIND says
+# otherwise (put HTTPS in front of it, see docs/deploy-docker.md).
 services:
   app:
     build: .
     ports:
-      - "${APP_PORT:-8088}:80"
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8088}:80"
     volumes:
       - .:/var/www/app
     environment:
-      APP_ENV: ${APP_ENV:-local}
-      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${APP_URL:-http://localhost:8088}
-      APP_KEY: ${APP_KEY:-local-development-key-not-for-production-0000}
+      APP_KEY: ${APP_KEY:?Set APP_KEY in .env (php -r "echo bin2hex(random_bytes(32));")}
       DB_HOST: db
       DB_PORT: "3306"
       DB_NAME: ${DB_NAME:-arcadeos}
       DB_USER: ${DB_USER:-arcadeos}
-      DB_PASSWORD: ${DB_PASSWORD:-arcadeos}
-      TEST_DB_NAME: arcadeos_test
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      TEST_DB_NAME: ${DB_NAME:-arcadeos}_test
       PAYMENT_MODE: ${PAYMENT_MODE:-none}
       SQUARE_ENV: ${SQUARE_ENV:-sandbox}
       SQUARE_ACCESS_TOKEN: ${SQUARE_ACCESS_TOKEN:-}
@@ -46,10 +48,10 @@ services:
   db:
     image: mariadb:10.11
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
       MARIADB_DATABASE: ${DB_NAME:-arcadeos}
       MARIADB_USER: ${DB_USER:-arcadeos}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-arcadeos}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
       - dbdata:/var/lib/mysql
       - ./docker/db-init:/docker-entrypoint-initdb.d:ro

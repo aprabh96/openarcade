@@ -16,6 +16,10 @@ final class SquareGateway implements PaymentGateway
 {
     public const API_VERSION = '2025-01-23';
 
+    /** How far past the hold's creation a late payment is searched for. */
+    private const LOOKUP_WINDOW = '+2 days';
+    private const LOOKUP_MAX_PAGES = 20;
+
     private const DECLINE_MESSAGES = [
         'CARD_DECLINED' => 'The card was declined.',
         'GENERIC_DECLINE' => 'The card was declined.',
@@ -66,52 +70,74 @@ final class SquareGateway implements PaymentGateway
     }
 
     /**
-     * One retry with the same idempotency key, so a request that did reach Square is never charged twice.
+     * One retry with the same idempotency key after a transport failure or a 5xx/429/408 answer,
+     * so a request that did reach Square is never charged twice and a blip is not a lost booking.
      *
      * @param array<string,mixed> $payload
      * @return array{status:int, body:string}|null null when both attempts failed to complete
      */
     private function postWithRetry(string $path, array $payload): ?array
     {
+        $response = null;
         foreach ([1, 2] as $attempt) {
             try {
-                return $this->send('POST', $path, $payload);
+                $response = $this->send('POST', $path, $payload);
+                if (!self::isTransient($response['status'])) {
+                    return $response;
+                }
+                $this->logger->warning('square answered with a transient error', ['path' => $path, 'attempt' => $attempt, 'status' => $response['status']]);
             } catch (\RuntimeException $error) {
+                $response = null;
                 $this->logger->warning('square request failed', ['path' => $path, 'attempt' => $attempt, 'error' => $error->getMessage()]);
             }
         }
 
-        return null;
+        return $response;
+    }
+
+    private static function isTransient(int $status): bool
+    {
+        return $status >= 500 || $status === 429 || $status === 408;
     }
 
     public function findByReference(string $referenceCode, \DateTimeImmutable $notBefore): ?PaymentResult
     {
-        $query = http_build_query([
+        $utc = new \DateTimeZone('UTC');
+        $begin = $notBefore->setTimezone($utc)->modify('-5 minutes');
+        $params = [
             'location_id' => $this->locationId,
-            'begin_time' => $notBefore->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z'),
-            'sort_order' => 'DESC',
+            'begin_time' => $begin->format('Y-m-d\TH:i:s\Z'),
+            'end_time' => $begin->modify(self::LOOKUP_WINDOW)->format('Y-m-d\TH:i:s\Z'),
+            'sort_order' => 'ASC',
             'limit' => 100,
-        ]);
-        try {
-            $response = $this->send('GET', '/v2/payments?' . $query, null);
-        } catch (\RuntimeException $error) {
-            $this->logger->warning('square payment lookup failed', ['error' => $error->getMessage()]);
-
-            return null;
-        }
-        if ($response['status'] !== 200) {
-            return null;
-        }
-        $data = json_decode($response['body'], true);
-        foreach (is_array($data) ? ($data['payments'] ?? []) : [] as $payment) {
-            if (is_array($payment) && ($payment['reference_id'] ?? null) === $referenceCode) {
-                return ($payment['status'] ?? '') === 'COMPLETED'
-                    ? PaymentResult::paid((string) $payment['id'])
-                    : PaymentResult::unknown('Payment ' . (string) ($payment['status'] ?? 'unknown'));
+        ];
+        for ($page = 1; $page <= self::LOOKUP_MAX_PAGES; $page++) {
+            try {
+                $response = $this->send('GET', '/v2/payments?' . http_build_query($params), null);
+            } catch (\RuntimeException $error) {
+                $this->logger->warning('square payment lookup failed', ['error' => $error->getMessage()]);
+                throw new PaymentLookupFailed('Square could not be reached: ' . $error->getMessage(), 0, $error);
             }
+            if ($response['status'] !== 200) {
+                $this->logger->warning('square payment lookup refused', ['status' => $response['status']]);
+                throw new PaymentLookupFailed('Square answered HTTP ' . $response['status'] . ' to the payment lookup.');
+            }
+            $data = json_decode($response['body'], true);
+            $data = is_array($data) ? $data : [];
+            foreach (is_array($data['payments'] ?? null) ? $data['payments'] : [] as $payment) {
+                if (is_array($payment) && ($payment['reference_id'] ?? null) === $referenceCode) {
+                    return ($payment['status'] ?? '') === 'COMPLETED'
+                        ? PaymentResult::paid((string) $payment['id'])
+                        : PaymentResult::unknown('Payment ' . (string) ($payment['status'] ?? 'unknown'));
+                }
+            }
+            $cursor = $data['cursor'] ?? null;
+            if (!is_string($cursor) || $cursor === '') {
+                return null;
+            }
+            $params['cursor'] = $cursor;
         }
-
-        return null;
+        throw new PaymentLookupFailed('Square returned more than ' . self::LOOKUP_MAX_PAGES . ' pages of payments; lookup abandoned.');
     }
 
     public function refund(string $paymentId, int $amountCents, string $currency, string $reason): bool
@@ -160,7 +186,7 @@ final class SquareGateway implements PaymentGateway
         $code = (string) ($first['code'] ?? '');
         $category = (string) ($first['category'] ?? '');
 
-        if ($response['status'] >= 500 || $response['status'] === 429 || $response['status'] === 408) {
+        if (self::isTransient($response['status'])) {
             $this->logger->warning('square unavailable', ['status' => $response['status'], 'code' => $code]);
 
             return PaymentResult::unknown('The payment service is temporarily unavailable.');
@@ -168,10 +194,12 @@ final class SquareGateway implements PaymentGateway
         if ($category === 'PAYMENT_METHOD_ERROR' || isset(self::DECLINE_MESSAGES[$code])) {
             return PaymentResult::declined(self::DECLINE_MESSAGES[$code] ?? 'The card was declined.');
         }
-        // Any other 4xx means Square rejected the request without charging: our configuration or input is wrong.
+        // Anything else is Square refusing the request itself: a revoked token, a wrong location id, a
+        // malformed request. Nothing was charged, and it is the venue's configuration that needs fixing,
+        // not the customer's card.
         $this->logger->error('square rejected payment request', ['status' => $response['status'], 'code' => $code, 'category' => $category]);
 
-        return PaymentResult::declined('The payment could not be processed. Please try again or pay at the venue.');
+        return PaymentResult::error("Square refused the request (HTTP {$response['status']}" . ($code !== '' ? ", {$code}" : '') . '); check the Square settings.');
     }
 
     /**

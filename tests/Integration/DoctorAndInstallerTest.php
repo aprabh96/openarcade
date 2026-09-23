@@ -107,6 +107,18 @@ final class DoctorAndInstallerTest extends TestCase
         self::assertTrue(Doctor::hasFailures($results));
     }
 
+    public function testUnreachableSiteAndLeftoverSetupTokenFail(): void
+    {
+        (new Installer($this->pdo, dirname(__DIR__, 2) . '/migrations', new FixedClock('2026-09-21 14:00:00')))->install('owner', 'correct-horse-battery');
+        $http = new FakeHttpClient();
+        for ($i = 0; $i < 7; $i++) {
+            $http->queueFailure('could not resolve host');
+        }
+        $results = $this->doctor(['APP_URL' => 'https://booking.example.com', 'SETUP_TOKEN' => 'still-here'], $this->pdo, $http, true)->run();
+        self::assertSame('fail', $this->statusOf($results, 'web.private..env'), 'not reachable is not the same as private');
+        self::assertSame('fail', $this->statusOf($results, 'env.setup_token'), 'an admin exists, so the token must go');
+    }
+
     public function testInstallerRefusesWeakCredentialsBeforeTouchingTheDatabase(): void
     {
         $installer = new Installer($this->pdo, dirname(__DIR__, 2) . '/migrations', new FixedClock('2026-09-21 14:00:00'));

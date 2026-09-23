@@ -12,8 +12,11 @@ $root = dirname(__DIR__);
 $path = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
 
 // PHP's built-in server (development): let it serve real files itself.
-if (PHP_SAPI === 'cli-server' && $path !== '/' && is_file(__DIR__ . $path)) {
-    return false;
+if (PHP_SAPI === 'cli-server' && $path !== '/') {
+    $file = realpath(__DIR__ . $path);
+    if ($file !== false && is_file($file) && str_starts_with($file, __DIR__ . DIRECTORY_SEPARATOR)) {
+        return false;
+    }
 }
 
 require $root . '/vendor/autoload.php';
