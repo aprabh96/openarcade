@@ -44,3 +44,4 @@
 .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
 #hours-table input[type="time"] { width: auto; }
 #station-labels .field { margin-bottom: 0.5rem; }
+.toolbar input[type="date"] { width: auto; }

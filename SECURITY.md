@@ -2,7 +2,7 @@
 
 ## Reporting a problem
 
-Email security@psynect.ai with a description and, if possible, steps to reproduce. Please do not
+Email prabh@psynect.ai with a description and, if possible, steps to reproduce. Please do not
 open a public issue for anything that could be exploited before a fix is out. You will get an
 acknowledgement within three days and a fix or a plan within two weeks for confirmed issues.
 

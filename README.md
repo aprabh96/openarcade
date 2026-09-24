@@ -25,6 +25,15 @@ More prompts, for connecting Square, embedding on a website, going live and upgr
 [`docs/agent-prompts/`](docs/agent-prompts/README.md). Prefer doing it by hand? See
 [`docs/deploy-docker.md`](docs/deploy-docker.md) and [`docs/deploy-shared-hosting.md`](docs/deploy-shared-hosting.md).
 
+## Screenshots
+
+| Customer booking page | Staff dashboard |
+| --- | --- |
+| ![Picking a time](docs/screenshots/booking-times.png) | ![Day view with a lane per station](docs/screenshots/dashboard-day.png) |
+| ![Booking confirmed](docs/screenshots/booking-confirmed.png) | ![Reservation panel with session timer](docs/screenshots/dashboard-reservation.png) |
+
+More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and settings. All names are demo data.
+
 ## What you get
 
 - **Booking page** (`/book/`): date, session length, number of stations, live availability,
