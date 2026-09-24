@@ -2,3 +2,11 @@
 *.png binary
 *.jpg binary
 *.ico binary
+
+# Windows-only apps keep Windows line endings.
+station/** text eol=crlf
+master-controller/** text eol=crlf
+*.ico binary
+*.dll binary
+*.lib binary
+*.rc binary
