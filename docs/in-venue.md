@@ -17,8 +17,9 @@ Front desk PC                         Each gaming PC (one per headset)
 2. In the master controller they select the stations and press Start with the minutes booked.
 3. Each station shows the countdown and the game menu inside the headset. Guests pick games from
    the menu and the station launches them through SteamVR.
-4. Staff can add time or stop at any moment. When the countdown reaches zero the station ends the
-   session on its own, even if the front desk PC is off.
+4. Staff can add time or stop at any moment. When the countdown reaches zero the station closes the
+   running game, returns the headset to the waiting screen and reports that it is free. It does this
+   on its own, even if the front desk PC is off.
 
 Staff start sessions by hand, as on the commercial arcade platforms. Starting a session
 automatically when a booking begins is a possible future addition.
@@ -31,6 +32,7 @@ keeps the connection open, and reconnects by itself after a drop.
 | Direction | Message | Meaning |
 | --- | --- | --- |
 | station to master | `STATION_NAME <name>` | Sent on connect so the master can list the station |
+| station to master | `SESSION_STOPPED` | The session ended (time up or stopped); the station is free |
 | station to master | `STATION_DISCONNECTING` | Sent on orderly shutdown |
 | master to station | `START_SESSION <minutes>` | Start a session of that many minutes and show the overlay |
 | master to station | `ADD_TIME <minutes>` | Add minutes to the running session |

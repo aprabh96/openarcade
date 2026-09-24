@@ -1,28 +1,74 @@
 # OpenArcade
 
-> **Early release.** This is a working head start, not a finished product. It ran a real arcade,
-> the booking system has 142 automated tests, and its money paths (holds, idempotent charges,
-> refunds, reconciliation) are tested. In this cleaned-up form it has not yet been run against live
-> Square and SMTP accounts, and the Windows apps compile in CI but have not been run in a headset
-> again. Try everything on a test setup and with Square's sandbox before real customers. Known gaps
-> are listed under [Known limitations](#known-limitations).
+**The free, open-source way to run a VR arcade.** A game menu and session timer inside every
+headset, a front desk app to start and stop sessions, and online booking with payments. You run
+it on your own PCs and web host, and there is no monthly platform fee.
 
-An open-source operating system for VR arcades: online booking, a staff dashboard, and in-headset
-session control with a game launcher. Until now that last part meant paying a commercial arcade
-platform every month. This is the software that ran the VR Lawrence arcade for four years, cleaned
-up so any venue can run it, with AI agents doing the setup from copy-paste prompts.
+Arcades usually pay a commercial platform every month for exactly this: the in-headset launcher
+that lets guests pick their own games and watch their time, plus the front desk control that
+starts and ends every session. OpenArcade is that software, opened up. It ran the VR Lawrence
+arcade for four years and was cleaned up so any venue can use it, with AI agents doing the setup
+from copy-paste prompts.
+
+![How OpenArcade fits together in a venue](docs/images/overview.jpg)
+
+<sub>Illustration of how the parts fit together, not a screenshot.</sub>
+
+> **Early release.** This is a working head start, not a finished product. The booking system has
+> 142 automated tests, and its money paths (holds, idempotent charges, refunds, reconciliation) are
+> tested. The Windows apps are the code that ran the arcade; they compile in CI but have not been
+> run in a headset since this cleanup. Try everything on a test setup, and use Square's sandbox,
+> before real customers. See [Known limitations](#known-limitations).
+
+## What guests get in the headset
+
+The station app runs on every gaming PC and adds your arcade's own tab to the SteamVR dashboard.
+
+- **A game menu of your own.** Your games, sorted into categories you choose (Action, Kids, Horror,
+  Racing and so on). Selecting one shows its cover art and description.
+- **They pick, it launches.** Guests press **Start Game** and the game opens: Steam titles through
+  SteamVR, and any other game or experience through its own program. **Quit Game** takes them back
+  to the menu so they can try something else, without calling staff.
+- **Time left, always one button away.** The countdown sits at the top of the menu. Guests press
+  the controller's menu button at any point, even mid-game, to check it.
+- **Time's up is automatic.** When the countdown ends, the station closes the game and puts the
+  headset back on your branded waiting screen, with a looping video of your logo, ready for the next
+  group. It also tells the front desk that the station is free.
+- **Little setup per game.** Installed Steam games are found by themselves, with their store art and
+  descriptions downloaded and cached. Non-Steam games are added once in the app window.
+
+## What staff get
+
+- **Master controller** on the front desk PC: every station in one window. Start a session with the
+  minutes booked, add time, or stop it, for one headset or a whole group at once. Stations connect
+  over the venue's local network and reconnect by themselves.
+- **Staff dashboard** in the browser (`/admin/`): the day's bookings on a timeline with one lane per
+  station, walk-ins, reschedules, cancellations, and all venue settings.
+- **Game library export**: one button turns your catalog into a web page for your website.
+
+## What customers get online
+
+- **Booking page** (`/book/`) that works on phones and can be embedded in your existing website:
+  date, session length, number of headsets, live availability, contact details, optional card
+  payment through Square, and a confirmation email with a code.
+- **No double bookings**, even when several people book the last free headset at the same moment.
+
+## The three parts
 
 | Part | Runs on | What it does |
 | --- | --- | --- |
-| Booking system (`/`, PHP) | Any web host or Docker | Online booking with live availability, optional Square payments, email confirmations, staff dashboard |
-| Master controller (`master-controller/`) | Front desk Windows PC | Start, add time and stop sessions on one station or a group |
-| Station app (`station/`) | Each gaming PC | Countdown and game menu inside the headset (SteamVR overlay), launches Steam and custom games, ends the session when time is up |
+| Station app ([`station/`](station/README.md)) | Every gaming PC | The in-headset game menu, countdown and launcher; ends sessions at time up |
+| Master controller ([`master-controller/`](master-controller/README.md)) | Front desk Windows PC | Start, add time and stop sessions for one station or a group |
+| Booking system (this folder, PHP) | Any web host, or Docker | Online booking, payments, email, staff dashboard |
 
-The two Windows apps talk over the venue's local network; see [`docs/in-venue.md`](docs/in-venue.md).
-Sessions are started by staff at the front desk, as on the commercial platforms.
+The station apps and the master controller talk only over your local network
+([`docs/in-venue.md`](docs/in-venue.md)). No cloud service sits between your front desk and your
+headsets. Staff start each session at the front desk, just as on the commercial platforms.
 
-**Install it with your AI agent.** Paste this into Codex, Claude Code, Cursor or any coding agent
-that can reach your server or hosting account:
+## Set it up with an AI agent
+
+Paste this into Codex, Claude Code, Cursor or any coding agent that can reach your server or
+hosting account:
 
 ```
 Install OpenArcade from https://github.com/aprabh96/openarcade. Start by reading AGENTS.md
@@ -30,9 +76,12 @@ and docs/agent-prompts/README.md, pick the prompt that matches my setup (<Docker
 ask me only for what the prompt lists, and finish with "php bin/console doctor" passing.
 ```
 
-More prompts, for connecting Square, embedding on a website, going live and upgrading, are in
-[`docs/agent-prompts/`](docs/agent-prompts/README.md). Prefer doing it by hand? See
-[`docs/deploy-docker.md`](docs/deploy-docker.md) and [`docs/deploy-shared-hosting.md`](docs/deploy-shared-hosting.md).
+For the gaming PCs and the front desk PC, use
+[`docs/agent-prompts/set-up-stations.md`](docs/agent-prompts/set-up-stations.md). More prompts,
+for Square, embedding the booking page, going live and upgrading, are in
+[`docs/agent-prompts/`](docs/agent-prompts/README.md). Doing it by hand? See
+[`docs/deploy-docker.md`](docs/deploy-docker.md), [`docs/deploy-shared-hosting.md`](docs/deploy-shared-hosting.md)
+and the READMEs in [`station/`](station/README.md) and [`master-controller/`](master-controller/README.md).
 
 ## Screenshots
 
@@ -41,28 +90,17 @@ More prompts, for connecting Square, embedding on a website, going live and upgr
 | ![Picking a time](docs/screenshots/booking-times.png) | ![Day view with a lane per station](docs/screenshots/dashboard-day.png) |
 | ![Booking confirmed](docs/screenshots/booking-confirmed.png) | ![Reservation panel](docs/screenshots/dashboard-reservation.png) |
 
-More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and settings. All names are demo data.
+More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and settings. All names
+are demo data. Screenshots of the in-headset menu will follow once a venue captures them.
 
-## What you get
+## More details
 
-- **Booking page** (`/book/`): date, session length, number of stations, live availability,
-  contact details, optional card payment, confirmation with a code and an email. Embeddable on
-  any website.
-- **Staff dashboard** (`/admin/`): a day timeline with one lane per station, walk-ins, reschedule,
-  cancel, and settings for hours, prices, closures, special hours, stations and branding.
-- **No double bookings.** The server decides availability and picks the stations inside a locked
-  transaction; a multi-process test proves that eight simultaneous customers get exactly one
-  booking for the last free station. Buffers between sessions, opening hours, lead time, advance
-  limit and slot grid are all enforced on the server.
 - **Payments** (optional): Square card payments in the browser, charged with a server-side amount
   under an idempotency key, with holds that expire, refunds when a slot is lost, and automatic
   reconciliation when a payment response never arrives.
 - **Email**: confirmations to the customer and the venue through SMTP or PHP `mail()`.
-- **In the headset** (Windows): a session countdown, a game menu with categories, one-click launch
-  of Steam and non-Steam games, automatic end of the session, and a front desk app to run every
-  station. See [`station/`](station/README.md) and [`master-controller/`](master-controller/README.md).
-- **Operations**: `php bin/console doctor --online` checks the whole installation the way a
-  careful engineer would, and exits non-zero until every problem is fixed.
+- **Operations**: `php bin/console doctor --online` checks the whole booking installation and exits
+  non-zero until every problem is fixed.
 
 ## Requirements
 
@@ -133,6 +171,8 @@ Contributor rules for people and agents are in [`AGENTS.md`](AGENTS.md).
 - Live Square and SMTP integrations are covered by tests against fakes only so far.
 - The booking system and the in-venue session control (master controller and station apps) are
   separate: staff start each session at the front desk, as with the commercial platforms.
+- The countdown lives in the in-headset menu (a SteamVR dashboard tab); it does not float over the
+  game while guests play.
 - The front desk to station protocol has no password; keep it on the venue's private network
   ([`docs/in-venue.md`](docs/in-venue.md#security)).
 - The Windows apps are the code that ran the arcade, renamed and cleaned up; they compile, but have
