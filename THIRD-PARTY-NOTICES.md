@@ -1,6 +1,6 @@
 # Third-party notices
 
-This project is MIT licensed (see LICENSE). It uses:
+OpenArcade is licensed under the GNU AGPL, version 3 or later (see LICENSE). It uses:
 
 | Component | License | Use |
 | --- | --- | --- |

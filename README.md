@@ -6,9 +6,16 @@ it on your own PCs and web host, and there is no monthly platform fee.
 
 Arcades usually pay a commercial platform every month for exactly this: the in-headset launcher
 that lets guests pick their own games and watch their time, plus the front desk control that
-starts and ends every session. OpenArcade is that software, opened up. It ran the VR Lawrence
-arcade for four years and was cleaned up so any venue can use it, with AI agents doing the setup
-from copy-paste prompts.
+starts and ends every session. OpenArcade is that software, opened up, with AI agents doing the
+setup from copy-paste prompts.
+
+### Why this exists
+
+My wife and I ran VR Lawrence, a seven-station VR arcade, for four years. The platforms that run
+arcades charge every month, and for a small venue those fees were simply too high.
+So I built our own system: the headset menu and timer, the front desk controller, and the booking
+site. It ran the arcade until we closed it. I cleaned it up and am giving it away so the next small
+arcade can spend that money on headsets and games instead. *(Prabh Arora)*
 
 ![How OpenArcade fits together in a venue](docs/images/overview.jpg)
 
@@ -188,4 +195,14 @@ token and a same-origin request; a Content Security Policy limits scripts to the
 
 ## License
 
-MIT. Third-party components are listed in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+Copyright (c) 2021-2026 Prabhsimran Arora and Sheyenne Fishero.
+
+OpenArcade is free software under the [GNU Affero General Public License v3.0](LICENSE) or later.
+In plain terms: any arcade or business may use it, change it and run its venue on it, commercially
+and for free. Anyone who distributes it, or offers it to others as a hosted service, must publish
+their complete source code, changes included, under the same license.
+
+**Commercial licenses** are available for companies that want to build a closed-source product on
+OpenArcade: prabh@psynect.ai.
+
+Third-party components keep their own licenses; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).

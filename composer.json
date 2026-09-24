@@ -2,7 +2,7 @@
   "name": "psynect/openarcade",
   "description": "Self-hosted reservation system for VR arcades and other station-based venues.",
   "type": "project",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "require": {
     "php": ">=8.1",
     "ext-curl": "*",
