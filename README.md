@@ -1,10 +1,11 @@
 # OpenArcade
 
-> **Early release.** This is a working head start, not a finished product. It ran a real arcade, it
-> has 147 automated tests, and the money paths (holds, idempotent charges, refunds, reconciliation)
-> are tested. It has not yet been run against live Square and SMTP accounts in this
-> form, and the Docker image is untested outside CI. Test with Square's sandbox before taking real
-> payments. Known gaps are listed under [Known limitations](#known-limitations).
+> **Early release.** This is a working head start, not a finished product. It ran a real arcade,
+> the booking system has 142 automated tests, and its money paths (holds, idempotent charges,
+> refunds, reconciliation) are tested. In this cleaned-up form it has not yet been run against live
+> Square and SMTP accounts, and the Windows apps compile in CI but have not been run in a headset
+> again. Try everything on a test setup and with Square's sandbox before real customers. Known gaps
+> are listed under [Known limitations](#known-limitations).
 
 An open-source operating system for VR arcades: online booking, a staff dashboard, and in-headset
 session control with a game launcher. Until now that last part meant paying a commercial arcade
@@ -48,8 +49,7 @@ More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and
   contact details, optional card payment, confirmation with a code and an email. Embeddable on
   any website.
 - **Staff dashboard** (`/admin/`): a day timeline with one lane per station, walk-ins, reschedule,
-  cancel, and settings for hours, prices,
-  closures, special hours, stations and branding.
+  cancel, and settings for hours, prices, closures, special hours, stations and branding.
 - **No double bookings.** The server decides availability and picks the stations inside a locked
   transaction; a multi-process test proves that eight simultaneous customers get exactly one
   booking for the last free station. Buffers between sessions, opening hours, lead time, advance
@@ -66,9 +66,12 @@ More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and
 
 ## Requirements
 
-PHP 8.1 or newer (`pdo_mysql`, `curl`, `mbstring`, `openssl`), MySQL 5.7+ or MariaDB 10.4+, and
-either Docker or an Apache host with `mod_rewrite`. That is the whole stack: no framework, no
-Node, no build step, one Composer dependency (PHPMailer). It runs on a $5 shared hosting plan.
+Booking system: PHP 8.1 or newer (`pdo_mysql`, `curl`, `mbstring`, `openssl`), MySQL 5.7+ or
+MariaDB 10.4+, and either Docker or an Apache host with `mod_rewrite`. No framework, no Node, no build
+step, one Composer dependency (PHPMailer). It runs on a $5 shared hosting plan.
+
+In the venue: Windows 10 or 11 on the front desk PC and on each gaming PC, SteamVR on the gaming PCs,
+and Visual Studio 2022 (or its free Build Tools) to compile the two apps.
 
 ## Quick start (Docker)
 
@@ -111,7 +114,9 @@ monthly (anonymises old guest details).
 
 ```bash
 docker compose build && docker compose run --rm app composer install
-docker compose run --rm app composer check     # style, PHPStan level 6, 147 tests, secret scan, dependency audit
+docker compose run --rm app composer check     # style, PHPStan level 6, 142 tests, secret scan, dependency audit
+msbuild station/StationApp.sln -p:Configuration=Release -p:Platform=x64
+msbuild master-controller/MasterController.sln -p:Configuration=Release -p:Platform=x64
 ```
 
 Tests run against a real MariaDB: unit, integration and in-process API suites. The clean-repo gate
@@ -128,13 +133,17 @@ Contributor rules for people and agents are in [`AGENTS.md`](AGENTS.md).
 - Live Square and SMTP integrations are covered by tests against fakes only so far.
 - The booking system and the in-venue session control (master controller and station apps) are
   separate: staff start each session at the front desk, as with the commercial platforms.
+- The front desk to station protocol has no password; keep it on the venue's private network
+  ([`docs/in-venue.md`](docs/in-venue.md#security)).
+- The Windows apps are the code that ran the arcade, renamed and cleaned up; they compile, but have
+  not been run in a headset since. Reports from the first venues are very welcome.
 
 Issues and pull requests are welcome; see `AGENTS.md` for the rules the tests enforce.
 
 ## Security
 
 See [`SECURITY.md`](SECURITY.md). Card numbers never touch this server; passwords are hashed;
-every query is prepared; admin writes need CSRF tokens; public bookings need a signed session
+every query is prepared; admin writes need CSRF tokens; public bookings need a signed booking
 token and a same-origin request; a Content Security Policy limits scripts to the site and Square.
 
 ## License
