@@ -1,0 +1,3 @@
+# Test-only APP_KEY values in the test suite (not secrets): "test-key-0123456789abcdef..." used by the in-process API and doctor tests.
+4bf34c6de9288d600fee69e5ea992bff3a49b5be:tests/Integration/DoctorAndInstallerTest.php:generic-api-key:37
+916c61532946c5771a9d61795db3ad288602e104:tests/Api/ApiTestCase.php:generic-api-key:60
