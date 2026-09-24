@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Support\FixedClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Mail;
+namespace OpenArcade\Mail;
 
-use ArcadeOS\Settings\VenueSettings;
+use OpenArcade\Settings\VenueSettings;
 
 /** Plain-text confirmation emails built from a reservation row (ReservationRepository::findRow). */
 final class ReservationMail

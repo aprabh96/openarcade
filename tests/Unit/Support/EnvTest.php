@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\Env;
+use OpenArcade\Support\Env;
 use PHPUnit\Framework\TestCase;
 
 final class EnvTest extends TestCase
@@ -20,14 +20,14 @@ final class EnvTest extends TestCase
 
     public function testRealEnvironmentWinsOverFile(): void
     {
-        putenv('ARCADEOS_TEST_KEY=from-real-env');
+        putenv('OPENARCADE_TEST_KEY=from-real-env');
         try {
-            $env = new Env(['ARCADEOS_TEST_KEY' => 'from-file', 'ONLY_IN_FILE' => 'x']);
-            self::assertSame('from-real-env', $env->get('ARCADEOS_TEST_KEY'));
+            $env = new Env(['OPENARCADE_TEST_KEY' => 'from-file', 'ONLY_IN_FILE' => 'x']);
+            self::assertSame('from-real-env', $env->get('OPENARCADE_TEST_KEY'));
             self::assertSame('x', $env->get('ONLY_IN_FILE'));
-            self::assertSame('fallback', $env->get('ARCADEOS_MISSING', 'fallback'));
+            self::assertSame('fallback', $env->get('OPENARCADE_MISSING', 'fallback'));
         } finally {
-            putenv('ARCADEOS_TEST_KEY');
+            putenv('OPENARCADE_TEST_KEY');
         }
     }
 
@@ -45,12 +45,12 @@ final class EnvTest extends TestCase
     public function testRequireThrowsWhenMissing(): void
     {
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('ARCADEOS_NOT_SET');
-        (new Env([]))->require('ARCADEOS_NOT_SET');
+        $this->expectExceptionMessage('OPENARCADE_NOT_SET');
+        (new Env([]))->require('OPENARCADE_NOT_SET');
     }
 
     public function testFromFileWithMissingFileIsEmpty(): void
     {
-        self::assertNull(Env::fromFile('/nonexistent/.env')->get('ARCADEOS_ANYTHING'));
+        self::assertNull(Env::fromFile('/nonexistent/.env')->get('OPENARCADE_ANYTHING'));
     }
 }

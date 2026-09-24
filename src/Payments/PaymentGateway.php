@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Payments;
+namespace OpenArcade\Payments;
 
 interface PaymentGateway
 {

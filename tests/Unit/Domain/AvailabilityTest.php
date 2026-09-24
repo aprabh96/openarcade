@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\Availability;
-use ArcadeOS\Domain\Block;
-use ArcadeOS\Domain\DayHours;
-use ArcadeOS\Domain\Slot;
+use OpenArcade\Domain\Availability;
+use OpenArcade\Domain\Block;
+use OpenArcade\Domain\DayHours;
+use OpenArcade\Domain\Slot;
 use PHPUnit\Framework\TestCase;
 
 final class AvailabilityTest extends TestCase

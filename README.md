@@ -1,4 +1,4 @@
-# VR Arcade OS (working name)
+# OpenArcade
 
 > **Early release.** This is a working head start, not a finished product. It ran a real arcade, it
 > has 147 automated tests, and the money paths (holds, idempotent charges, refunds, reconciliation)
@@ -24,7 +24,7 @@ Sessions are started by staff at the front desk, as on the commercial platforms.
 that can reach your server or hosting account:
 
 ```
-Install the VR arcade booking system from https://github.com/<owner>/<repo>. Start by reading AGENTS.md
+Install OpenArcade from https://github.com/aprabh96/openarcade. Start by reading AGENTS.md
 and docs/agent-prompts/README.md, pick the prompt that matches my setup (<Docker on a server / shared web hosting>),
 ask me only for what the prompt lists, and finish with "php bin/console doctor" passing.
 ```
@@ -76,7 +76,7 @@ Node, no build step, one Composer dependency (PHPMailer). It runs on a $5 shared
 cp .env.example .env                       # set APP_URL, APP_KEY, DB_PASSWORD (required)
 docker compose build && docker compose run --rm app composer install --no-dev --optimize-autoloader
 docker compose up -d
-docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD='a-long-password' app \
+docker compose run --rm -e OPENARCADE_ADMIN_PASSWORD='a-long-password' app \
   php bin/console install --admin-user=owner --venue="Orbit VR" --timezone=America/Chicago --stations=7
 docker compose run --rm app php bin/console doctor
 ```
@@ -98,7 +98,7 @@ monthly (anonymises old guest details).
 
 | Command | Purpose |
 | --- | --- |
-| `install --admin-user= [--venue= --timezone= --stations=]` | Migrate, seed defaults, create the first admin (password via `ARCADEOS_ADMIN_PASSWORD` or a hidden prompt) |
+| `install --admin-user= [--venue= --timezone= --stations=]` | Migrate, seed defaults, create the first admin (password via `OPENARCADE_ADMIN_PASSWORD` or a hidden prompt) |
 | `migrate` | Apply new database migrations after an upgrade |
 | `admin:create --admin-user=` | Add another staff account |
 | `admin:unlock --admin-user=` | Clear failed sign-in attempts for a username |

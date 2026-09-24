@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tools;
+namespace OpenArcade\Tools;
 
 final class Finding
 {

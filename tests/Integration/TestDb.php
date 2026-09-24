@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Db\Connection;
-use ArcadeOS\Db\Migrator;
+use OpenArcade\Db\Connection;
+use OpenArcade\Db\Migrator;
 use PDO;
 
 final class TestDb

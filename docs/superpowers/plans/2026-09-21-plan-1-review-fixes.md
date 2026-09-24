@@ -115,10 +115,10 @@ Create `tests/Integration/workers/confirm_worker.php`:
 
 declare(strict_types=1);
 
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Tests\Integration\TestDb;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Tests\Integration\TestDb;
 
 require dirname(__DIR__, 3) . '/vendor/autoload.php';
 
@@ -154,7 +154,7 @@ Run the file five times in a row; all must pass. Commit: `Prove confirmPayment u
   private const PLACEHOLDER_HINT = '/(?i)example|local|change|dummy|test|your|placeholder|xxxx/';
   ```
   Report rule `generic_secret` only when the captured value contains at least one digit and one letter and does not match `PLACEHOLDER_HINT`.
-- `tests/Unit/Tools/CleanScannerTest.php`: add tests, building fixtures by concatenation: flags `'SMTP_PASSWORD=' . 'k9Xv' . 'Q2mL' . 'p7Rt' . 'z4Wn' . 'b8Hc'`; ignores `ARCADEOS_ADMIN_PASSWORD=local-dev-password-123`; ignores `--admin-password=correct-horse-battery` (no digit); ignores `$password = trim((string) fgets(STDIN));`; ignores `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
+- `tests/Unit/Tools/CleanScannerTest.php`: add tests, building fixtures by concatenation: flags `'SMTP_PASSWORD=' . 'k9Xv' . 'Q2mL' . 'p7Rt' . 'z4Wn' . 'b8Hc'`; ignores `OPENARCADE_ADMIN_PASSWORD=local-dev-password-123`; ignores `--admin-password=correct-horse-battery` (no digit); ignores `$password = trim((string) fgets(STDIN));`; ignores `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
 - `bin/check-clean`: add a comment at the top: the hash denylist is a local, git-ignored aid for the maintainer and does nothing in CI or a fresh clone; gitleaks in CI is the broad backstop.
 Run the gate; if the new rule flags anything already in the repository, decide case by case: real problem -> fix the file; harmless fixture -> reword it. Do not allowlist. Commit: `Add dependency audit and a generic secret rule to the gate`.
 

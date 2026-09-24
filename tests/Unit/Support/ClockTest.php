@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Support\SystemClock;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Support\SystemClock;
 use PHPUnit\Framework\TestCase;
 
 final class ClockTest extends TestCase

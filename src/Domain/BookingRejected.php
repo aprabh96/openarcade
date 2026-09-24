@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 /**
  * A booking the system refuses. $reason is a stable machine code:

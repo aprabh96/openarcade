@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
-use ArcadeOS\Auth\AdminAuth;
-use ArcadeOS\Auth\BookingToken;
-use ArcadeOS\Auth\LoginThrottle;
-use ArcadeOS\Domain\BookingFlow;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
-use ArcadeOS\Domain\ReservationRepository;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Mail\Mailer;
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Support\Clock;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\Logger;
+use OpenArcade\Auth\AdminAuth;
+use OpenArcade\Auth\BookingToken;
+use OpenArcade\Auth\LoginThrottle;
+use OpenArcade\Domain\BookingFlow;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\PriceRepository;
+use OpenArcade\Domain\ReservationRepository;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Mail\Mailer;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Support\Clock;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\Logger;
 use PDO;
 
 /** Everything the HTTP layer needs, built once per request. */

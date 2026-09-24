@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\HoursRepository;
+use OpenArcade\Domain\HoursRepository;
 use PHPUnit\Framework\TestCase;
 
 final class HoursRepositoryTest extends TestCase

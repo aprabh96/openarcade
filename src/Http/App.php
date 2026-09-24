@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
-use ArcadeOS\Auth\AdminUser;
-use ArcadeOS\Auth\Csrf;
-use ArcadeOS\Db\Connection;
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\SystemClock;
+use OpenArcade\Auth\AdminUser;
+use OpenArcade\Auth\Csrf;
+use OpenArcade\Db\Connection;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\SystemClock;
 
 final class App
 {

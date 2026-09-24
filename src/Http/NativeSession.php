@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
 /** PHP's own session, started lazily with secure cookie settings. */
 final class NativeSession implements Session
 {
-    public const COOKIE = 'arcadeos_session';
+    public const COOKIE = 'openarcade_session';
 
     private bool $started = false;
 

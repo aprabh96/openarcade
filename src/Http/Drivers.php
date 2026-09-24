@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
-use ArcadeOS\Mail\LogMailer;
-use ArcadeOS\Mail\Mailer;
-use ArcadeOS\Mail\PhpMailerMailer;
-use ArcadeOS\Payments\NullGateway;
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Payments\SquareGateway;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\CurlHttpClient;
-use ArcadeOS\Support\HttpClient;
-use ArcadeOS\Support\Logger;
+use OpenArcade\Mail\LogMailer;
+use OpenArcade\Mail\Mailer;
+use OpenArcade\Mail\PhpMailerMailer;
+use OpenArcade\Payments\NullGateway;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Payments\SquareGateway;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\CurlHttpClient;
+use OpenArcade\Support\HttpClient;
+use OpenArcade\Support\Logger;
 
 /** Picks the payment and mail implementations named in .env. */
 final class Drivers

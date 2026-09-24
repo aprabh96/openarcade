@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\ReservationRepository;
+use OpenArcade\Domain\ReservationRepository;
 use PHPUnit\Framework\TestCase;
 
 final class ReservationRepositoryTest extends TestCase

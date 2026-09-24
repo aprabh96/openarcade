@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Builds dist/vr-arcade-os-<version>.zip: the committed tree plus a production vendor/ folder,
+# Builds dist/openarcade-<version>.zip: the committed tree plus a production vendor/ folder,
 # without tests, tooling, local files or the Windows apps, ready to unpack on shared hosting.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${1:-$(git -C "$ROOT" describe --tags --always 2>/dev/null || echo dev)}"
 VERSION="$(printf '%s' "$VERSION" | tr -c 'A-Za-z0-9._-' '-')"
-NAME="vr-arcade-os-${VERSION}"
+NAME="openarcade-${VERSION}"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 

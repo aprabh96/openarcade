@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\DayHours;
+use OpenArcade\Domain\DayHours;
 use PHPUnit\Framework\TestCase;
 
 final class DayHoursTest extends TestCase

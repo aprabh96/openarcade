@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Mail;
+namespace OpenArcade\Mail;
 
 interface Mailer
 {

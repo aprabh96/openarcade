@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 /** The one seam between this application and outside HTTP services (Square). */
 interface HttpClient

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Payments;
+namespace OpenArcade\Payments;
 
-use ArcadeOS\Support\HttpClient;
-use ArcadeOS\Support\Logger;
+use OpenArcade\Support\HttpClient;
+use OpenArcade\Support\Logger;
 
 /**
  * Square Payments API over plain HTTPS. The amount always comes from the server, the idempotency

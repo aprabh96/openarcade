@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Support;
+namespace OpenArcade\Tests\Support;
 
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Payments\PaymentLookupFailed;
-use ArcadeOS\Payments\PaymentResult;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Payments\PaymentLookupFailed;
+use OpenArcade\Payments\PaymentResult;
 
 /** A scripted "square" gateway: the next charge produces whatever the test queued. */
 final class FakeGateway implements PaymentGateway

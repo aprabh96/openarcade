@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Auth\AdminAuth;
-use ArcadeOS\Auth\LoginThrottle;
-use ArcadeOS\Http\ArraySession;
-use ArcadeOS\Http\RateLimiter;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Auth\AdminAuth;
+use OpenArcade\Auth\LoginThrottle;
+use OpenArcade\Http\ArraySession;
+use OpenArcade\Http\RateLimiter;
+use OpenArcade\Support\FixedClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

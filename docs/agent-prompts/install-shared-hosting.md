@@ -5,7 +5,7 @@ FTP but no shell. The agent needs access to the hosting control panel (for examp
 browser it controls) or FTP credentials that you enter yourself.
 
 ```
-Install the VR arcade booking system from the release zip <path or URL of vr-arcade-os-x.y.z.zip> on my shared hosting account.
+Install OpenArcade from the release zip <path or URL of openarcade-x.y.z.zip> on my shared hosting account.
 
 Read AGENTS.md and docs/deploy-shared-hosting.md inside the zip first, then:
 1. In the hosting panel create a MySQL database and a user with all privileges on it. Do not tell me the password in chat; put it straight into .env in step 3.

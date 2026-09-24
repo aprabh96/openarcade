@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
 /** In-memory session for tests and the console. */
 final class ArraySession implements Session

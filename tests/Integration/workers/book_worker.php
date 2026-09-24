@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Tests\Integration\TestDb;
-use ArcadeOS\Tests\Integration\VenueFixture;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Tests\Integration\TestDb;
+use OpenArcade\Tests\Integration\VenueFixture;
 
 require dirname(__DIR__, 3) . '/vendor/autoload.php';
 

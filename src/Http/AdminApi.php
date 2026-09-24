@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
-use ArcadeOS\Auth\AdminUser;
-use ArcadeOS\Auth\Csrf;
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Settings\VenueSettings;
-use ArcadeOS\Support\IpHash;
+use OpenArcade\Auth\AdminUser;
+use OpenArcade\Auth\Csrf;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Settings\VenueSettings;
+use OpenArcade\Support\IpHash;
 
 /** Endpoints the staff dashboard uses. Every method except login/logout runs behind App::guard(). */
 final class AdminApi
@@ -285,7 +285,7 @@ final class AdminApi
     }
 
     /** @return array{open_minute:int,close_minute:int}|null */
-    private static function hoursView(?\ArcadeOS\Domain\DayHours $hours): ?array
+    private static function hoursView(?\OpenArcade\Domain\DayHours $hours): ?array
     {
         return $hours === null ? null : ['open_minute' => $hours->openMinute, 'close_minute' => $hours->closeMinute];
     }

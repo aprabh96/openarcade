@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
-use ArcadeOS\Domain\Availability;
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Support\IpHash;
+use OpenArcade\Domain\Availability;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Support\IpHash;
 
 /** Endpoints the booking page uses. None of them ever returns another customer's details. */
 final class PublicApi

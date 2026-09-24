@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Mail;
+namespace OpenArcade\Tests\Unit\Mail;
 
-use ArcadeOS\Mail\ReservationMail;
-use ArcadeOS\Settings\VenueSettings;
+use OpenArcade\Mail\ReservationMail;
+use OpenArcade\Settings\VenueSettings;
 use PHPUnit\Framework\TestCase;
 
 final class ReservationMailTest extends TestCase

@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use ArcadeOS\Tools\CleanScanner;
+use OpenArcade\Tools\CleanScanner;
 
 $root = dirname(__DIR__);
 chdir($root);

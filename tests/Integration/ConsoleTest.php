@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Console\Application;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Console\Application;
+use OpenArcade\Support\FixedClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

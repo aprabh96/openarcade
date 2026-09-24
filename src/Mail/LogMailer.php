@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Mail;
+namespace OpenArcade\Mail;
 
 /** Development driver: writes each email to a file (or keeps it in memory) instead of sending it. */
 final class LogMailer implements Mailer

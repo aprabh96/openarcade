@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 final class CurlHttpClient implements HttpClient
 {
@@ -28,7 +28,7 @@ final class CurlHttpClient implements HttpClient
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 5,
             CURLOPT_UNRESTRICTED_AUTH => false,
-            CURLOPT_USERAGENT => 'ArcadeOS/1.0',
+            CURLOPT_USERAGENT => 'OpenArcade/1.0',
         ]);
         if ($body !== null) {
             curl_setopt($handle, CURLOPT_POSTFIELDS, $body);

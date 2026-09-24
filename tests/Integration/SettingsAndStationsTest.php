@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Settings\SettingsRepository;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Settings\SettingsRepository;
 use PHPUnit\Framework\TestCase;
 
 final class SettingsAndStationsTest extends TestCase

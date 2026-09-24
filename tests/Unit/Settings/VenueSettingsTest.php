@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Settings;
+namespace OpenArcade\Tests\Unit\Settings;
 
-use ArcadeOS\Settings\VenueSettings;
+use OpenArcade\Settings\VenueSettings;
 use PHPUnit\Framework\TestCase;
 
 final class VenueSettingsTest extends TestCase

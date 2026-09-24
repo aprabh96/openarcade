@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit;
+namespace OpenArcade\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 

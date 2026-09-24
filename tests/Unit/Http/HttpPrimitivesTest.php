@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Http;
+namespace OpenArcade\Tests\Unit\Http;
 
-use ArcadeOS\Auth\BookingToken;
-use ArcadeOS\Auth\Csrf;
-use ArcadeOS\Http\ApiError;
-use ArcadeOS\Http\ArraySession;
-use ArcadeOS\Http\Request;
-use ArcadeOS\Http\Response;
-use ArcadeOS\Http\Router;
-use ArcadeOS\Http\SecurityHeaders;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\Env;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Auth\BookingToken;
+use OpenArcade\Auth\Csrf;
+use OpenArcade\Http\ApiError;
+use OpenArcade\Http\ArraySession;
+use OpenArcade\Http\Request;
+use OpenArcade\Http\Response;
+use OpenArcade\Http\Router;
+use OpenArcade\Http\SecurityHeaders;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\Env;
+use OpenArcade\Support\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 final class HttpPrimitivesTest extends TestCase

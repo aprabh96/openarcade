@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 /**
  * Minimal application log. Never pass names, emails, phones, tokens or card data in $context;

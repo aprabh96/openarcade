@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\Env;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\Env;
 use PHPUnit\Framework\TestCase;
 
 final class ConfigTest extends TestCase

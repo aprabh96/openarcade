@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Db\Migrator;
+use OpenArcade\Db\Migrator;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

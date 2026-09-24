@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Support\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 final class ConcurrencyTest extends TestCase

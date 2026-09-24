@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\PriceList;
+use OpenArcade\Domain\PriceList;
 use PHPUnit\Framework\TestCase;
 
 final class PriceListTest extends TestCase

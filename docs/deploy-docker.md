@@ -3,12 +3,12 @@
 Works on any machine with Docker: a small cloud VM, a NAS, a spare PC at the venue.
 
 ```bash
-git clone https://github.com/<owner>/<repo>.git booking && cd booking
+git clone https://github.com/aprabh96/openarcade.git booking && cd booking
 cp .env.example .env            # set APP_URL, APP_KEY and DB_PASSWORD; compose refuses to start without the last two
 docker compose build
 docker compose run --rm app composer install --no-dev --optimize-autoloader
 docker compose up -d
-docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD='choose-a-long-password' app \
+docker compose run --rm -e OPENARCADE_ADMIN_PASSWORD='choose-a-long-password' app \
   php bin/console install --admin-user=owner --venue="Orbit VR" --timezone=America/Chicago --stations=7
 docker compose run --rm app php bin/console doctor
 ```

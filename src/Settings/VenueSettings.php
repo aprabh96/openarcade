@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Settings;
+namespace OpenArcade\Settings;
 
 final class VenueSettings
 {

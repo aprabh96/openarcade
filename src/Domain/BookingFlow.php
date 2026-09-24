@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
-use ArcadeOS\Http\ApiError;
-use ArcadeOS\Mail\Mailer;
-use ArcadeOS\Mail\ReservationMail;
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Payments\PaymentResult;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Support\Logger;
+use OpenArcade\Http\ApiError;
+use OpenArcade\Mail\Mailer;
+use OpenArcade\Mail\ReservationMail;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Payments\PaymentResult;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Support\Logger;
 
 /** A customer booking from start to finish: reserve, charge when required, confirm, notify. */
 final class BookingFlow
@@ -70,7 +70,7 @@ final class BookingFlow
      *
      * @return array<string,mixed>
      */
-    private function repeat(int $id, \ArcadeOS\Settings\VenueSettings $venue): array
+    private function repeat(int $id, \OpenArcade\Settings\VenueSettings $venue): array
     {
         $row = $this->repository->findRow($id, $venue->tz());
         if ($row === null) {
@@ -135,7 +135,7 @@ final class BookingFlow
     }
 
     /** @param array<string,mixed> $row */
-    private function notify(array $row, \ArcadeOS\Settings\VenueSettings $venue): void
+    private function notify(array $row, \OpenArcade\Settings\VenueSettings $venue): void
     {
         $customer = ReservationMail::customer($row, $venue);
         if (!$this->mailer->send((string) $row['email'], trim($row['first_name'] . ' ' . $row['last_name']), $customer['subject'], $customer['text'])) {

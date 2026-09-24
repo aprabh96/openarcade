@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Api;
+namespace OpenArcade\Tests\Api;
 
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Payments\PaymentResult;
-use ArcadeOS\Tests\Integration\VenueFixture;
-use ArcadeOS\Tests\Support\FakeGateway;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Payments\PaymentResult;
+use OpenArcade\Tests\Integration\VenueFixture;
+use OpenArcade\Tests\Support\FakeGateway;
 
 final class PaymentFlowTest extends ApiTestCase
 {

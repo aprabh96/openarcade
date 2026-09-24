@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Payments;
+namespace OpenArcade\Payments;
 
 /** Payment mode "none": customers pay at the venue, so nothing is ever charged. */
 final class NullGateway implements PaymentGateway

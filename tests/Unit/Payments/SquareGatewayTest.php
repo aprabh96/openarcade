@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Payments;
+namespace OpenArcade\Tests\Unit\Payments;
 
-use ArcadeOS\Payments\PaymentLookupFailed;
-use ArcadeOS\Payments\PaymentResult;
-use ArcadeOS\Payments\SquareGateway;
-use ArcadeOS\Support\Logger;
-use ArcadeOS\Tests\Support\FakeHttpClient;
+use OpenArcade\Payments\PaymentLookupFailed;
+use OpenArcade\Payments\PaymentResult;
+use OpenArcade\Payments\SquareGateway;
+use OpenArcade\Support\Logger;
+use OpenArcade\Tests\Support\FakeHttpClient;
 use PHPUnit\Framework\TestCase;
 
 final class SquareGatewayTest extends TestCase

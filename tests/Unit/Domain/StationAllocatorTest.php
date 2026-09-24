@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\Block;
-use ArcadeOS\Domain\StationAllocator;
+use OpenArcade\Domain\Block;
+use OpenArcade\Domain\StationAllocator;
 use PHPUnit\Framework\TestCase;
 
 final class StationAllocatorTest extends TestCase

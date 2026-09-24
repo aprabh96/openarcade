@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\Money;
+use OpenArcade\Support\Money;
 use PHPUnit\Framework\TestCase;
 
 final class MoneyTest extends TestCase

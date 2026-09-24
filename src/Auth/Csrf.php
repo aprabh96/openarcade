@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Auth;
+namespace OpenArcade\Auth;
 
-use ArcadeOS\Http\Session;
+use OpenArcade\Http\Session;
 
 /** Per-session token that every admin write must echo in the X-CSRF-Token header. */
 final class Csrf

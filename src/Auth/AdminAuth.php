@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Auth;
+namespace OpenArcade\Auth;
 
-use ArcadeOS\Http\Session;
-use ArcadeOS\Support\Clock;
+use OpenArcade\Http\Session;
+use OpenArcade\Support\Clock;
 use PDO;
 
 final class AdminAuth

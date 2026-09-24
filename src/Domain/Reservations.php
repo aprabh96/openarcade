@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
-use ArcadeOS\Db\Transaction;
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Payments\PaymentLookupFailed;
-use ArcadeOS\Payments\PaymentResult;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Settings\VenueSettings;
-use ArcadeOS\Support\Clock;
-use ArcadeOS\Support\Logger;
+use OpenArcade\Db\Transaction;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Payments\PaymentLookupFailed;
+use OpenArcade\Payments\PaymentResult;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Settings\VenueSettings;
+use OpenArcade\Support\Clock;
+use OpenArcade\Support\Logger;
 use PDO;
 
 final class Reservations

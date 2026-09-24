@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 /** Time one station is taken on one local date, as minutes after local midnight. */
 final class Block

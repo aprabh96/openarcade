@@ -9,9 +9,9 @@ jobs:
         image: mariadb:10.11
         env:
           MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: arcadeos_test
-          MARIADB_USER: arcadeos
-          MARIADB_PASSWORD: arcadeos
+          MARIADB_DATABASE: openarcade_test
+          MARIADB_USER: openarcade
+          MARIADB_PASSWORD: openarcade
         ports:
           - 3306:3306
         options: >-
@@ -20,9 +20,9 @@ jobs:
     env:
       DB_HOST: 127.0.0.1
       DB_PORT: "3306"
-      DB_USER: arcadeos
-      DB_PASSWORD: arcadeos
-      TEST_DB_NAME: arcadeos_test
+      DB_USER: openarcade
+      DB_PASSWORD: openarcade
+      TEST_DB_NAME: openarcade_test
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2

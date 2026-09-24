@@ -14,7 +14,7 @@
 - Never copy code, data, names, emails, phone numbers, keys or identifiers from the legacy VR Lawrence folders. This repository is new code.
 - Test data uses only `@example.com` emails and `555-01xx` phone numbers.
 - Every PHP file starts with `<?php` then `declare(strict_types=1);`.
-- Run commands from the repository root `E:\vr-arcade-os`. All PHP runs in Docker: `docker compose run --rm app <command>`.
+- Run commands from the repository root `E:\openarcade`. All PHP runs in Docker: `docker compose run --rm app <command>`.
 - Commit after each task with the message shown. End every commit message with the trailer `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
 
 ---
@@ -49,7 +49,7 @@
 
 ```json
 {
-  "name": "psynect/vr-arcade-os",
+  "name": "psynect/openarcade",
   "description": "Self-hosted reservation system for VR arcades and other station-based venues.",
   "type": "project",
   "license": "MIT",
@@ -65,9 +65,9 @@
     "phpstan/phpstan": "^1.11",
     "phpunit/phpunit": "^10.5"
   },
-  "autoload": { "psr-4": { "ArcadeOS\\": "src/" } },
+  "autoload": { "psr-4": { "OpenArcade\\": "src/" } },
   "autoload-dev": {
-    "psr-4": { "ArcadeOS\\Tests\\": "tests/", "ArcadeOS\\Tools\\": "tools/" }
+    "psr-4": { "OpenArcade\\Tests\\": "tests/", "OpenArcade\\Tools\\": "tools/" }
   },
   "scripts": {
     "test": "@php vendor/bin/phpunit",
@@ -226,10 +226,10 @@ services:
       APP_KEY: local-development-key-not-for-production-0000
       DB_HOST: db
       DB_PORT: "3306"
-      DB_NAME: arcadeos
-      DB_USER: arcadeos
-      DB_PASSWORD: arcadeos
-      TEST_DB_NAME: arcadeos_test
+      DB_NAME: openarcade
+      DB_USER: openarcade
+      DB_PASSWORD: openarcade
+      TEST_DB_NAME: openarcade_test
     depends_on:
       db:
         condition: service_healthy
@@ -237,9 +237,9 @@ services:
     image: mariadb:10.11
     environment:
       MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: arcadeos
-      MARIADB_USER: arcadeos
-      MARIADB_PASSWORD: arcadeos
+      MARIADB_DATABASE: openarcade
+      MARIADB_USER: openarcade
+      MARIADB_PASSWORD: openarcade
     volumes:
       - dbdata:/var/lib/mysql
       - ./docker/db-init:/docker-entrypoint-initdb.d:ro
@@ -254,8 +254,8 @@ volumes:
 
 `docker/db-init/01-test-db.sql`:
 ```sql
-CREATE DATABASE IF NOT EXISTS arcadeos_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-GRANT ALL PRIVILEGES ON arcadeos_test.* TO 'arcadeos'@'%';
+CREATE DATABASE IF NOT EXISTS openarcade_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON openarcade_test.* TO 'openarcade'@'%';
 FLUSH PRIVILEGES;
 ```
 
@@ -263,7 +263,7 @@ FLUSH PRIVILEGES;
 
 `README.md`:
 ```markdown
-# vr-arcade-os (working name)
+# openarcade (working name)
 
 Self-hosted reservation system for VR arcades and other venues that rent numbered stations by the hour. Work in progress. See `docs/superpowers/specs/` for the design.
 
@@ -280,7 +280,7 @@ Self-hosted reservation system for VR arcades and other venues that rent numbere
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit;
+namespace OpenArcade\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
@@ -322,9 +322,9 @@ Fixtures are assembled with concatenation so this test file never contains a str
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Tools;
+namespace OpenArcade\Tests\Unit\Tools;
 
-use ArcadeOS\Tools\CleanScanner;
+use OpenArcade\Tools\CleanScanner;
 use PHPUnit\Framework\TestCase;
 
 final class CleanScannerTest extends TestCase
@@ -380,7 +380,7 @@ final class CleanScannerTest extends TestCase
 - [ ] **Step 2: Run it to see it fail**
 
 Run: `docker compose run --rm app vendor/bin/phpunit tests/Unit/Tools/CleanScannerTest.php`
-Expected: FAIL, `Class "ArcadeOS\Tools\CleanScanner" not found`.
+Expected: FAIL, `Class "OpenArcade\Tools\CleanScanner" not found`.
 
 - [ ] **Step 3: Write `tools/Finding.php` and `tools/CleanScanner.php`**
 
@@ -390,7 +390,7 @@ Expected: FAIL, `Class "ArcadeOS\Tools\CleanScanner" not found`.
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tools;
+namespace OpenArcade\Tools;
 
 final class Finding
 {
@@ -410,7 +410,7 @@ final class Finding
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tools;
+namespace OpenArcade\Tools;
 
 final class CleanScanner
 {
@@ -520,7 +520,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use ArcadeOS\Tools\CleanScanner;
+use OpenArcade\Tools\CleanScanner;
 
 $root = dirname(__DIR__);
 chdir($root);
@@ -598,9 +598,9 @@ git commit -m "Add clean-repository gate for secrets and personal data"
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\Env;
+use OpenArcade\Support\Env;
 use PHPUnit\Framework\TestCase;
 
 final class EnvTest extends TestCase
@@ -616,14 +616,14 @@ final class EnvTest extends TestCase
 
     public function testRealEnvironmentWinsOverFile(): void
     {
-        putenv('ARCADEOS_TEST_KEY=from-real-env');
+        putenv('OPENARCADE_TEST_KEY=from-real-env');
         try {
-            $env = new Env(['ARCADEOS_TEST_KEY' => 'from-file', 'ONLY_IN_FILE' => 'x']);
-            self::assertSame('from-real-env', $env->get('ARCADEOS_TEST_KEY'));
+            $env = new Env(['OPENARCADE_TEST_KEY' => 'from-file', 'ONLY_IN_FILE' => 'x']);
+            self::assertSame('from-real-env', $env->get('OPENARCADE_TEST_KEY'));
             self::assertSame('x', $env->get('ONLY_IN_FILE'));
-            self::assertSame('fallback', $env->get('ARCADEOS_MISSING', 'fallback'));
+            self::assertSame('fallback', $env->get('OPENARCADE_MISSING', 'fallback'));
         } finally {
-            putenv('ARCADEOS_TEST_KEY');
+            putenv('OPENARCADE_TEST_KEY');
         }
     }
 
@@ -641,13 +641,13 @@ final class EnvTest extends TestCase
     public function testRequireThrowsWhenMissing(): void
     {
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('ARCADEOS_NOT_SET');
-        (new Env([]))->require('ARCADEOS_NOT_SET');
+        $this->expectExceptionMessage('OPENARCADE_NOT_SET');
+        (new Env([]))->require('OPENARCADE_NOT_SET');
     }
 
     public function testFromFileWithMissingFileIsEmpty(): void
     {
-        self::assertNull(Env::fromFile('/nonexistent/.env')->get('ARCADEOS_ANYTHING'));
+        self::assertNull(Env::fromFile('/nonexistent/.env')->get('OPENARCADE_ANYTHING'));
     }
 }
 ```
@@ -658,10 +658,10 @@ final class EnvTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\Env;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\Env;
 use PHPUnit\Framework\TestCase;
 
 final class ConfigTest extends TestCase
@@ -704,7 +704,7 @@ Expected: FAIL, classes not found.
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 final class Env
 {
@@ -808,7 +808,7 @@ final class Env
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 final class Config
 {
@@ -891,9 +891,9 @@ git commit -m "Add Env parser and Config"
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\Money;
+use OpenArcade\Support\Money;
 use PHPUnit\Framework\TestCase;
 
 final class MoneyTest extends TestCase
@@ -939,10 +939,10 @@ final class MoneyTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Support;
+namespace OpenArcade\Tests\Unit\Support;
 
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Support\SystemClock;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Support\SystemClock;
 use PHPUnit\Framework\TestCase;
 
 final class ClockTest extends TestCase
@@ -975,7 +975,7 @@ Expected: FAIL, classes not found.
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 interface Clock
 {
@@ -990,7 +990,7 @@ interface Clock
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 final class SystemClock implements Clock
 {
@@ -1007,7 +1007,7 @@ final class SystemClock implements Clock
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 final class FixedClock implements Clock
 {
@@ -1036,7 +1036,7 @@ final class FixedClock implements Clock
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 final class Money
 {
@@ -1112,9 +1112,9 @@ git commit -m "Add Clock and Money value types"
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Db;
+namespace OpenArcade\Tests\Unit\Db;
 
-use ArcadeOS\Db\Migrator;
+use OpenArcade\Db\Migrator;
 use PHPUnit\Framework\TestCase;
 
 final class MigratorStatementsTest extends TestCase
@@ -1138,9 +1138,9 @@ final class MigratorStatementsTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Db;
+namespace OpenArcade\Db;
 
-use ArcadeOS\Support\Config;
+use OpenArcade\Support\Config;
 use PDO;
 
 final class Connection
@@ -1178,7 +1178,7 @@ final class Connection
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Db;
+namespace OpenArcade\Db;
 
 use PDO;
 
@@ -1240,7 +1240,7 @@ final class Migrator
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Db;
+namespace OpenArcade\Db;
 
 use PDO;
 
@@ -1406,10 +1406,10 @@ CREATE TABLE rate_limits (
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Db\Connection;
-use ArcadeOS\Db\Migrator;
+use OpenArcade\Db\Connection;
+use OpenArcade\Db\Migrator;
 use PDO;
 
 final class TestDb
@@ -1454,9 +1454,9 @@ final class TestDb
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Db\Migrator;
+use OpenArcade\Db\Migrator;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -1516,9 +1516,9 @@ git commit -m "Add database connection, migrator, transactions and schema"
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Settings;
+namespace OpenArcade\Tests\Unit\Settings;
 
-use ArcadeOS\Settings\VenueSettings;
+use OpenArcade\Settings\VenueSettings;
 use PHPUnit\Framework\TestCase;
 
 final class VenueSettingsTest extends TestCase
@@ -1553,10 +1553,10 @@ final class VenueSettingsTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Settings\SettingsRepository;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Settings\SettingsRepository;
 use PHPUnit\Framework\TestCase;
 
 final class SettingsAndStationsTest extends TestCase
@@ -1612,7 +1612,7 @@ final class SettingsAndStationsTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Settings;
+namespace OpenArcade\Settings;
 
 final class VenueSettings
 {
@@ -1702,7 +1702,7 @@ final class VenueSettings
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Settings;
+namespace OpenArcade\Settings;
 
 use PDO;
 
@@ -1746,7 +1746,7 @@ final class SettingsRepository
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 use PDO;
 
@@ -1811,9 +1811,9 @@ git commit -m "Add venue settings and station repository"
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\DayHours;
+use OpenArcade\Domain\DayHours;
 use PHPUnit\Framework\TestCase;
 
 final class DayHoursTest extends TestCase
@@ -1845,9 +1845,9 @@ final class DayHoursTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\HoursRepository;
+use OpenArcade\Domain\HoursRepository;
 use PHPUnit\Framework\TestCase;
 
 final class HoursRepositoryTest extends TestCase
@@ -1897,7 +1897,7 @@ final class HoursRepositoryTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 /** Opening hours for one local date, as minutes after local midnight. Sessions never cross midnight. */
 final class DayHours
@@ -1918,7 +1918,7 @@ final class DayHours
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 use PDO;
 
@@ -2023,9 +2023,9 @@ git commit -m "Add opening hours with closed dates and special hours"
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\PriceList;
+use OpenArcade\Domain\PriceList;
 use PHPUnit\Framework\TestCase;
 
 final class PriceListTest extends TestCase
@@ -2075,9 +2075,9 @@ final class PriceListTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\PriceRepository;
+use OpenArcade\Domain\PriceRepository;
 use PHPUnit\Framework\TestCase;
 
 final class PriceRepositoryTest extends TestCase
@@ -2124,7 +2124,7 @@ final class PriceRepositoryTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class Quote
 {
@@ -2145,9 +2145,9 @@ final class Quote
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
-use ArcadeOS\Support\Money;
+use OpenArcade\Support\Money;
 
 final class PriceList
 {
@@ -2200,7 +2200,7 @@ final class PriceList
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 use PDO;
 
@@ -2279,12 +2279,12 @@ Pure logic, no database. Two sessions on one station must be at least `buffer` m
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\Availability;
-use ArcadeOS\Domain\Block;
-use ArcadeOS\Domain\DayHours;
-use ArcadeOS\Domain\Slot;
+use OpenArcade\Domain\Availability;
+use OpenArcade\Domain\Block;
+use OpenArcade\Domain\DayHours;
+use OpenArcade\Domain\Slot;
 use PHPUnit\Framework\TestCase;
 
 final class AvailabilityTest extends TestCase
@@ -2379,7 +2379,7 @@ Expected: FAIL, classes not found.
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 /** Time one station is taken on one local date, as minutes after local midnight. */
 final class Block
@@ -2399,7 +2399,7 @@ final class Block
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class Slot
 {
@@ -2417,7 +2417,7 @@ final class Slot
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class Availability
 {
@@ -2506,10 +2506,10 @@ The server, never the browser, picks stations. Prefer the free station whose pre
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Domain;
+namespace OpenArcade\Tests\Unit\Domain;
 
-use ArcadeOS\Domain\Block;
-use ArcadeOS\Domain\StationAllocator;
+use OpenArcade\Domain\Block;
+use OpenArcade\Domain\StationAllocator;
 use PHPUnit\Framework\TestCase;
 
 final class StationAllocatorTest extends TestCase
@@ -2550,7 +2550,7 @@ final class StationAllocatorTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class StationAllocator
 {
@@ -2624,7 +2624,7 @@ The only way a reservation is written. Writers for one date are serialised: the 
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 /**
  * A booking the system refuses. $reason is a stable machine code:
@@ -2647,7 +2647,7 @@ final class BookingRejected extends \DomainException
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class BookingRules
 {
@@ -2683,7 +2683,7 @@ final class BookingRules
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class BookingRequest
 {
@@ -2747,7 +2747,7 @@ final class BookingRequest
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 final class Reservation
 {
@@ -2781,7 +2781,7 @@ final class Reservation
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 use PDO;
 
@@ -2978,11 +2978,11 @@ In `confirmPayment`, the "hold expired and stations were taken" branch records t
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
-use ArcadeOS\Db\Transaction;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Support\Clock;
+use OpenArcade\Db\Transaction;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Support\Clock;
 use PDO;
 
 final class Reservations
@@ -3215,13 +3215,13 @@ final class Reservations
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Settings\SettingsRepository;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\PriceRepository;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Settings\SettingsRepository;
 use PDO;
 
 final class VenueFixture
@@ -3259,14 +3259,14 @@ The fixed clock is Monday 2026-09-21 14:00 UTC, which is 09:00 in Chicago.
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Support\FixedClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -3489,12 +3489,12 @@ Real operating-system processes race for the same stations. This is the test tha
 
 declare(strict_types=1);
 
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Tests\Integration\TestDb;
-use ArcadeOS\Tests\Integration\VenueFixture;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Tests\Integration\TestDb;
+use OpenArcade\Tests\Integration\VenueFixture;
 
 require dirname(__DIR__, 3) . '/vendor/autoload.php';
 
@@ -3521,7 +3521,7 @@ try {
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 
@@ -3622,7 +3622,7 @@ git commit -m "Prove no double booking with a multi-process race test"
 
 **Files:** Create `src/Console/Application.php`, `bin/console`, `tests/Integration/ConsoleTest.php`.
 
-Commands: `migrate`, `install`, `admin:create`, `seed:demo`, `holds:release`, `help`. The admin password is read from the `--admin-password=` option, else from the `ARCADEOS_ADMIN_PASSWORD` environment variable (preferred for agents, keeps it out of shell history), else prompted.
+Commands: `migrate`, `install`, `admin:create`, `seed:demo`, `holds:release`, `help`. The admin password is read from the `--admin-password=` option, else from the `OPENARCADE_ADMIN_PASSWORD` environment variable (preferred for agents, keeps it out of shell history), else prompted.
 
 Note for test authors: PHPUnit's `TestCase` already defines `run()` and `count()`. Do not name helpers that.
 
@@ -3633,10 +3633,10 @@ Note for test authors: PHPUnit's `TestCase` already defines `run()` and `count()
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Console\Application;
-use ArcadeOS\Support\FixedClock;
+use OpenArcade\Console\Application;
+use OpenArcade\Support\FixedClock;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -3725,18 +3725,18 @@ final class ConsoleTest extends TestCase
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Console;
+namespace OpenArcade\Console;
 
-use ArcadeOS\Db\Migrator;
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Support\Clock;
+use OpenArcade\Db\Migrator;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\PriceRepository;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Support\Clock;
 use PDO;
 
 final class Application
@@ -3790,7 +3790,7 @@ final class Application
             '  migrate        Apply database migrations',
             '  install        Migrate, seed defaults, create the first admin',
             '                 --admin-user= --admin-password= [--stations=4] [--venue=] [--timezone=]',
-            '                 (the password may come from the ARCADEOS_ADMIN_PASSWORD environment variable)',
+            '                 (the password may come from the OPENARCADE_ADMIN_PASSWORD environment variable)',
             '  admin:create   Create another admin: --admin-user= --admin-password=',
             '  seed:demo      Add fake reservations for demos and screenshots',
             '  holds:release  Expire unpaid holds',
@@ -3917,7 +3917,7 @@ final class Application
     /** @param array<string,string> $options */
     private function adminPassword(array $options): string
     {
-        $password = $options['admin-password'] ?? (getenv('ARCADEOS_ADMIN_PASSWORD') ?: '');
+        $password = $options['admin-password'] ?? (getenv('OPENARCADE_ADMIN_PASSWORD') ?: '');
         if ($password === '' && defined('STDIN') && function_exists('posix_isatty') && posix_isatty(STDIN)) {
             ($this->write)('Admin password (12+ characters):');
             $password = trim((string) fgets(STDIN));
@@ -3955,10 +3955,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use ArcadeOS\Console\Application;
-use ArcadeOS\Db\Connection;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\SystemClock;
+use OpenArcade\Console\Application;
+use OpenArcade\Db\Connection;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\SystemClock;
 
 $root = dirname(__DIR__);
 try {
@@ -3978,7 +3978,7 @@ exit((new Application($pdo, $root . '/migrations', new SystemClock(), static fun
 Run: `docker compose run --rm app composer test`
 Expected: all pass.
 
-Run: `docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner --stations=4` then `docker compose run --rm app php bin/console seed:demo`
+Run: `docker compose run --rm -e OPENARCADE_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner --stations=4` then `docker compose run --rm app php bin/console seed:demo`
 Expected: `Installed...` then `Created 10 demo reservations.`
 
 - [ ] **Step 5: Commit**
@@ -4008,9 +4008,9 @@ jobs:
         image: mariadb:10.11
         env:
           MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: arcadeos_test
-          MARIADB_USER: arcadeos
-          MARIADB_PASSWORD: arcadeos
+          MARIADB_DATABASE: openarcade_test
+          MARIADB_USER: openarcade
+          MARIADB_PASSWORD: openarcade
         ports:
           - 3306:3306
         options: >-
@@ -4019,9 +4019,9 @@ jobs:
     env:
       DB_HOST: 127.0.0.1
       DB_PORT: "3306"
-      DB_USER: arcadeos
-      DB_PASSWORD: arcadeos
-      TEST_DB_NAME: arcadeos_test
+      DB_USER: openarcade
+      DB_PASSWORD: openarcade
+      TEST_DB_NAME: openarcade_test
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -4061,7 +4061,7 @@ Expected: coding standard clean, PHPStan `[OK] No errors`, all tests green, `che
     docker compose run --rm app composer check      # style, static analysis, tests, clean-repo gate
 
     # try it
-    docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner
+    docker compose run --rm -e OPENARCADE_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner
     docker compose run --rm app php bin/console seed:demo
 
 `composer check` must pass before every commit. The clean-repo gate (`bin/check-clean`) fails on API keys, real email addresses and phone numbers. Test data uses `@example.com` and `555-01xx` only.

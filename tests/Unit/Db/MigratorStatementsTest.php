@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Db;
+namespace OpenArcade\Tests\Unit\Db;
 
-use ArcadeOS\Db\Migrator;
+use OpenArcade\Db\Migrator;
 use PHPUnit\Framework\TestCase;
 
 final class MigratorStatementsTest extends TestCase

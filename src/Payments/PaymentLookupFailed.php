@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Payments;
+namespace OpenArcade\Payments;
 
 /**
  * The provider could not say whether a payment exists (network error, HTTP error). Callers must

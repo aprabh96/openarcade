@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Mail;
+namespace OpenArcade\Mail;
 
-use ArcadeOS\Support\Logger;
+use OpenArcade\Support\Logger;
 use PHPMailer\PHPMailer\PHPMailer;
 
 /** Sends through PHPMailer, either an SMTP account or the host's mail() function. */

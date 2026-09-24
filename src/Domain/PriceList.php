@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
-use ArcadeOS\Support\Money;
+use OpenArcade\Support\Money;
 
 final class PriceList
 {

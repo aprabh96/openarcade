@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Auth;
+namespace OpenArcade\Auth;
 
-use ArcadeOS\Support\Clock;
+use OpenArcade\Support\Clock;
 
 /**
  * Proof that a booking request comes from a browser that first loaded the booking page: a random

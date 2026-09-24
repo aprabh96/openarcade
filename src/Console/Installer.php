@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Console;
+namespace OpenArcade\Console;
 
-use ArcadeOS\Db\Migrator;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Support\Clock;
+use OpenArcade\Db\Migrator;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\PriceRepository;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Support\Clock;
 use PDO;
 
 /** First-time installation, shared by the console and the shared-hosting setup page. Safe to run twice. */

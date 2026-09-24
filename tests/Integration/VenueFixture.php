@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Settings\SettingsRepository;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\PriceRepository;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Settings\SettingsRepository;
 use PDO;
 
 final class VenueFixture

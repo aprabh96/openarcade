@@ -3,13 +3,13 @@
 Use when the venue has a server, a NAS or a spare computer with Docker installed, or a cloud VM.
 
 ```
-Install the VR arcade booking system from https://github.com/<owner>/<repo> on this machine with Docker.
+Install OpenArcade from https://github.com/aprabh96/openarcade on this machine with Docker.
 
 Read AGENTS.md and docs/deploy-docker.md in the repository first, then do the following and ask me only for the facts you cannot find:
 1. Clone the repository into <folder, for example /opt/booking> and copy .env.example to .env.
-2. In .env set APP_ENV=production, APP_DEBUG=false, APP_URL=<https://booking.example.com>, and generate APP_KEY with: php -r "echo bin2hex(random_bytes(32));" (or openssl rand -hex 32). Set DB_HOST=db, DB_NAME=arcadeos, DB_USER=arcadeos and a strong DB_PASSWORD. Leave PAYMENT_MODE=none and MAIL_DRIVER=log for now.
+2. In .env set APP_ENV=production, APP_DEBUG=false, APP_URL=<https://booking.example.com>, and generate APP_KEY with: php -r "echo bin2hex(random_bytes(32));" (or openssl rand -hex 32). Set DB_HOST=db, DB_NAME=openarcade, DB_USER=openarcade and a strong DB_PASSWORD. Leave PAYMENT_MODE=none and MAIL_DRIVER=log for now.
 3. Build and start: docker compose build; docker compose run --rm app composer install --no-dev --optimize-autoloader; docker compose up -d.
-4. Install: docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD='<I will type this when you ask>' app php bin/console install --admin-user=<owner> --venue="<Venue name>" --timezone=<America/Chicago> --stations=<number>.
+4. Install: docker compose run --rm -e OPENARCADE_ADMIN_PASSWORD='<I will type this when you ask>' app php bin/console install --admin-user=<owner> --venue="<Venue name>" --timezone=<America/Chicago> --stations=<number>.
 5. Put the site behind HTTPS at APP_URL (Caddy, nginx or the hosting provider's proxy). The app only listens on 127.0.0.1:8088, so the proxy must run on the same machine. Set TRUST_PROXY=true in .env and restart; the proxy must append the client address to X-Forwarded-For and set X-Forwarded-Proto.
 6. Add two cron jobs on the host: every 5 minutes "docker compose -f <folder>/docker-compose.yml run --rm app php bin/console holds:release" and monthly "... php bin/console privacy:purge --older-than-months=12".
 7. Run docker compose run --rm app php bin/console doctor --online and fix every FAIL until the command exits 0. Show me the full output.

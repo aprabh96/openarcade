@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Support;
+namespace OpenArcade\Support;
 
 /** IP addresses are never stored in clear; only a keyed hash, so logs and tables cannot be joined back to people. */
 final class IpHash

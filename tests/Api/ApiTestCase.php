@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Api;
+namespace OpenArcade\Tests\Api;
 
-use ArcadeOS\Http\App;
-use ArcadeOS\Http\ArraySession;
-use ArcadeOS\Http\Request;
-use ArcadeOS\Http\Response;
-use ArcadeOS\Http\Services;
-use ArcadeOS\Mail\LogMailer;
-use ArcadeOS\Payments\NullGateway;
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\Env;
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Support\Logger;
-use ArcadeOS\Tests\Integration\TestDb;
-use ArcadeOS\Tests\Integration\VenueFixture;
+use OpenArcade\Http\App;
+use OpenArcade\Http\ArraySession;
+use OpenArcade\Http\Request;
+use OpenArcade\Http\Response;
+use OpenArcade\Http\Services;
+use OpenArcade\Mail\LogMailer;
+use OpenArcade\Payments\NullGateway;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\Env;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Support\Logger;
+use OpenArcade\Tests\Integration\TestDb;
+use OpenArcade\Tests\Integration\VenueFixture;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

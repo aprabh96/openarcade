@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Support;
+namespace OpenArcade\Tests\Support;
 
-use ArcadeOS\Support\HttpClient;
+use OpenArcade\Support\HttpClient;
 
 /** Scripted HTTP responses for tests; records every request it receives. */
 final class FakeHttpClient implements HttpClient

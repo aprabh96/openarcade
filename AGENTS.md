@@ -78,7 +78,7 @@ Hard rules for setup agents:
 cp .env.example .env   # set APP_ENV=local, APP_DEBUG=true, APP_KEY, DB_PASSWORD
 docker compose build && docker compose run --rm app composer install
 docker compose run --rm app composer check
-docker compose run --rm -e ARCADEOS_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner
+docker compose run --rm -e OPENARCADE_ADMIN_PASSWORD=local-dev-password-123 app php bin/console install --admin-user=owner
 docker compose run --rm app php bin/console seed:demo
 docker compose up -d      # http://localhost:8088/book/ and /admin/
 ```

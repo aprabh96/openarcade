@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Http;
+namespace OpenArcade\Http;
 
 /** An error the client is meant to see. The message is safe to show; internals never go in here. */
 final class ApiError extends \RuntimeException

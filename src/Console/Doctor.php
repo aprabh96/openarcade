@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Console;
+namespace OpenArcade\Console;
 
-use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Domain\PriceRepository;
-use ArcadeOS\Domain\StationRepository;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\HttpClient;
+use OpenArcade\Domain\HoursRepository;
+use OpenArcade\Domain\PriceRepository;
+use OpenArcade\Domain\StationRepository;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\HttpClient;
 use PDO;
 
 /**
@@ -168,7 +168,7 @@ final class Doctor
         try {
             $response = $this->http->request('GET', $base . '/v2/locations/' . rawurlencode($square['locationId']), [
                 'Authorization' => 'Bearer ' . $square['accessToken'],
-                'Square-Version' => \ArcadeOS\Payments\SquareGateway::API_VERSION,
+                'Square-Version' => \OpenArcade\Payments\SquareGateway::API_VERSION,
                 'Accept' => 'application/json',
             ], null, 15);
             $this->add('payment.square.credentials', $response['status'] === 200 ? 'pass' : 'fail', $response['status'] === 200 ? 'token and location verified' : "Square answered HTTP {$response['status']}; check SQUARE_ACCESS_TOKEN, SQUARE_LOCATION_ID and SQUARE_ENV.");

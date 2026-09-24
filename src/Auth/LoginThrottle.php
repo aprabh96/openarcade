@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Auth;
+namespace OpenArcade\Auth;
 
 use PDO;
 

@@ -5,14 +5,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use ArcadeOS\Console\Application;
-use ArcadeOS\Console\Doctor;
-use ArcadeOS\Db\Connection;
-use ArcadeOS\Http\Drivers;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\CurlHttpClient;
-use ArcadeOS\Support\Logger;
-use ArcadeOS\Support\SystemClock;
+use OpenArcade\Console\Application;
+use OpenArcade\Console\Doctor;
+use OpenArcade\Db\Connection;
+use OpenArcade\Http\Drivers;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\CurlHttpClient;
+use OpenArcade\Support\Logger;
+use OpenArcade\Support\SystemClock;
 
 $root = dirname(__DIR__);
 $config = Config::load($root);

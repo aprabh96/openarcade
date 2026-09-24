@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Unit\Tools;
+namespace OpenArcade\Tests\Unit\Tools;
 
-use ArcadeOS\Tools\CleanScanner;
+use OpenArcade\Tools\CleanScanner;
 use PHPUnit\Framework\TestCase;
 
 final class CleanScannerTest extends TestCase
@@ -65,7 +65,7 @@ final class CleanScannerTest extends TestCase
     public function testGenericSecretRuleIgnoresPlaceholdersAndNonSecretLines(): void
     {
         $scanner = new CleanScanner();
-        self::assertSame([], $scanner->scanText('a.env', 'ARCADEOS_ADMIN_PASSWORD=local-dev-password-123'));
+        self::assertSame([], $scanner->scanText('a.env', 'OPENARCADE_ADMIN_PASSWORD=local-dev-password-123'));
         self::assertSame([], $scanner->scanText('a.md', '--admin-password=correct-horse-battery'));
         self::assertSame([], $scanner->scanText('a.php', '$password = trim((string) fgets(STDIN));'));
         self::assertSame([], $scanner->scanText('ci.yml', 'GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'));

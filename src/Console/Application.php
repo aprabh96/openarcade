@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Console;
+namespace OpenArcade\Console;
 
-use ArcadeOS\Db\Migrator;
-use ArcadeOS\Domain\BookingRejected;
-use ArcadeOS\Domain\BookingRequest;
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Domain\Reservations;
-use ArcadeOS\Payments\NullGateway;
-use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Settings\SettingsRepository;
-use ArcadeOS\Support\Clock;
-use ArcadeOS\Support\Logger;
+use OpenArcade\Db\Migrator;
+use OpenArcade\Domain\BookingRejected;
+use OpenArcade\Domain\BookingRequest;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Domain\Reservations;
+use OpenArcade\Payments\NullGateway;
+use OpenArcade\Payments\PaymentGateway;
+use OpenArcade\Settings\SettingsRepository;
+use OpenArcade\Support\Clock;
+use OpenArcade\Support\Logger;
 use PDO;
 
 final class Application
@@ -84,7 +84,7 @@ final class Application
             '  migrate        Apply database migrations',
             '  install        Migrate, seed defaults, create the first admin',
             '                 --admin-user= --admin-password= [--stations=4] [--venue=] [--timezone=]',
-            '                 (the password may come from the ARCADEOS_ADMIN_PASSWORD environment variable)',
+            '                 (the password may come from the OPENARCADE_ADMIN_PASSWORD environment variable)',
             '  admin:create   Create another admin: --admin-user= --admin-password=',
             '  admin:unlock   Clear failed sign-in attempts for a username: --admin-user=',
             '  seed:demo      Add fake reservations for demos and screenshots (refused when real bookings exist unless --force)',
@@ -149,7 +149,7 @@ final class Application
         if ($username === '') {
             throw new \InvalidArgumentException('--admin-user is required.');
         }
-        $removed = (new \ArcadeOS\Auth\LoginThrottle($this->pdo))->clear($username);
+        $removed = (new \OpenArcade\Auth\LoginThrottle($this->pdo))->clear($username);
         ($this->write)("Cleared {$removed} failed sign-in attempt(s) for {$username}.");
 
         return 0;
@@ -219,7 +219,7 @@ final class Application
         }
         $tz = (new SettingsRepository($this->pdo))->load()->tz();
         $cutoff = $this->clock->now()->setTimezone($tz)->modify("-{$months} months")->format('Y-m-d');
-        $count = (new \ArcadeOS\Domain\ReservationRepository($this->pdo))->anonymiseBefore($cutoff, $this->clock->now());
+        $count = (new \OpenArcade\Domain\ReservationRepository($this->pdo))->anonymiseBefore($cutoff, $this->clock->now());
         ($this->write)("Anonymised {$count} reservation(s) dated before {$cutoff}.");
 
         return 0;
@@ -228,7 +228,7 @@ final class Application
     /** @param array<string,string> $options */
     private function adminPassword(array $options): string
     {
-        $password = $options['admin-password'] ?? (getenv('ARCADEOS_ADMIN_PASSWORD') ?: '');
+        $password = $options['admin-password'] ?? (getenv('OPENARCADE_ADMIN_PASSWORD') ?: '');
         if ($password === '' && defined('STDIN') && function_exists('posix_isatty') && posix_isatty(STDIN)) {
             ($this->write)('Admin password (12+ characters, input hidden):');
             $saved = shell_exec('stty -g 2>/dev/null');

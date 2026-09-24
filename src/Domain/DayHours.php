@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Domain;
+namespace OpenArcade\Domain;
 
 /** Opening hours for one local date, as minutes after local midnight. Sessions never cross midnight. */
 final class DayHours

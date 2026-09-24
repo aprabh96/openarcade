@@ -16,10 +16,10 @@ services:
       APP_KEY: ${APP_KEY:?Set APP_KEY in .env (php -r "echo bin2hex(random_bytes(32));")}
       DB_HOST: db
       DB_PORT: "3306"
-      DB_NAME: ${DB_NAME:-arcadeos}
-      DB_USER: ${DB_USER:-arcadeos}
+      DB_NAME: ${DB_NAME:-openarcade}
+      DB_USER: ${DB_USER:-openarcade}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-      TEST_DB_NAME: ${DB_NAME:-arcadeos}_test
+      TEST_DB_NAME: ${DB_NAME:-openarcade}_test
       PAYMENT_MODE: ${PAYMENT_MODE:-none}
       SQUARE_ENV: ${SQUARE_ENV:-sandbox}
       SQUARE_ACCESS_TOKEN: ${SQUARE_ACCESS_TOKEN:-}
@@ -44,8 +44,8 @@ services:
     image: mariadb:10.11
     environment:
       MARIADB_RANDOM_ROOT_PASSWORD: "1"
-      MARIADB_DATABASE: ${DB_NAME:-arcadeos}
-      MARIADB_USER: ${DB_USER:-arcadeos}
+      MARIADB_DATABASE: ${DB_NAME:-openarcade}
+      MARIADB_USER: ${DB_USER:-openarcade}
       MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
       - dbdata:/var/lib/mysql

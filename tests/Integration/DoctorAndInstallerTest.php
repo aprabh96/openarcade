@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Integration;
+namespace OpenArcade\Tests\Integration;
 
-use ArcadeOS\Console\Doctor;
-use ArcadeOS\Console\Installer;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\Env;
-use ArcadeOS\Support\FixedClock;
-use ArcadeOS\Tests\Support\FakeHttpClient;
+use OpenArcade\Console\Doctor;
+use OpenArcade\Console\Installer;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\Env;
+use OpenArcade\Support\FixedClock;
+use OpenArcade\Tests\Support\FakeHttpClient;
 use PDO;
 use PHPUnit\Framework\TestCase;
 

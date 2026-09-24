@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use ArcadeOS\Http\App;
-use ArcadeOS\Http\NativeSession;
-use ArcadeOS\Http\Request;
-use ArcadeOS\Http\Response;
-use ArcadeOS\Support\Config;
+use OpenArcade\Http\App;
+use OpenArcade\Http\NativeSession;
+use OpenArcade\Http\Request;
+use OpenArcade\Http\Response;
+use OpenArcade\Support\Config;
 
 $root = dirname(__DIR__);
 $path = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');

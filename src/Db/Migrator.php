@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Db;
+namespace OpenArcade\Db;
 
 use PDO;
 

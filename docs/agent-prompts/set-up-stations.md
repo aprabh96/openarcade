@@ -3,7 +3,7 @@
 Run this on each PC, with an agent that can use a terminal and the Windows desktop there.
 
 ```
-Set up the in-venue session control from https://github.com/<owner>/<repo> on this Windows PC. This PC is the <front desk PC / gaming PC for station N>.
+Set up the in-venue session control from https://github.com/aprabh96/openarcade on this Windows PC. This PC is the <front desk PC / gaming PC for station N>.
 
 Read AGENTS.md and docs/in-venue.md first, then:
 1. If msbuild is missing, install Visual Studio 2022 Build Tools with "Desktop development with C++". Ask me before installing anything.

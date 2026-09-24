@@ -9,10 +9,10 @@ declare(strict_types=1);
  * account exists yet. After a successful install it refuses to run again; remove SETUP_TOKEN anyway.
  */
 
-use ArcadeOS\Console\Installer;
-use ArcadeOS\Db\Connection;
-use ArcadeOS\Support\Config;
-use ArcadeOS\Support\SystemClock;
+use OpenArcade\Console\Installer;
+use OpenArcade\Db\Connection;
+use OpenArcade\Support\Config;
+use OpenArcade\Support\SystemClock;
 
 $root = dirname(__DIR__);
 require $root . '/vendor/autoload.php';

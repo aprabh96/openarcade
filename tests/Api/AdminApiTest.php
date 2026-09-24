@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ArcadeOS\Tests\Api;
+namespace OpenArcade\Tests\Api;
 
-use ArcadeOS\Domain\BookingRules;
-use ArcadeOS\Tests\Integration\VenueFixture;
+use OpenArcade\Domain\BookingRules;
+use OpenArcade\Tests\Integration\VenueFixture;
 
 final class AdminApiTest extends ApiTestCase
 {

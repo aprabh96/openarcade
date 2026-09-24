@@ -1,6 +1,6 @@
 # Booking Core: design
 
-Date: 2026-09-21. Status: approved by Prabh in chat (option A: harden and restructure the existing PHP/MySQL system). Working project name: `vr-arcade-os` (placeholder, easy to change before publishing).
+Date: 2026-09-21. Status: approved by Prabh in chat (option A: harden and restructure the existing PHP/MySQL system). Working project name: `openarcade` (placeholder, easy to change before publishing).
 
 ## 1. Purpose
 
@@ -38,7 +38,7 @@ public/                 web root
   .htaccess             rewrite to index.php, deny dotfiles
   book/                 booking UI (HTML, ES modules, CSS)
   admin/                staff dashboard UI (HTML, ES modules, CSS)
-src/                    PSR-4 namespace ArcadeOS\
+src/                    PSR-4 namespace OpenArcade\
   Support/              Env, Config, Clock, Money, Json, Logger, Validator
   Db/                   Connection, Migrator
   Domain/               Hours, Pricing, Availability, StationAllocator, Reservations, ReservationRepository
@@ -166,4 +166,4 @@ Both are plain HTML, CSS and ES modules. Branding through CSS variables set from
 
 ## 16. Delivery
 
-Built in `E:\vr-arcade-os` with fresh git history and demo data only. Stages: scaffold and gates; config, migrations and console; domain engine; reservations with locking; HTTP and public API; auth and admin API; payments; real-time; mail; booking UI; dashboard UI; doctor, setup page and agent kit; hardening review and documentation. Nothing is pushed or made public until Prabh has reviewed it. License MIT, with third-party notices.
+Built in `E:\openarcade` with fresh git history and demo data only. Stages: scaffold and gates; config, migrations and console; domain engine; reservations with locking; HTTP and public API; auth and admin API; payments; real-time; mail; booking UI; dashboard UI; doctor, setup page and agent kit; hardening review and documentation. Nothing is pushed or made public until Prabh has reviewed it. License MIT, with third-party notices.

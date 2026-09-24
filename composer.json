@@ -1,5 +1,5 @@
 {
-  "name": "psynect/vr-arcade-os",
+  "name": "psynect/openarcade",
   "description": "Self-hosted reservation system for VR arcades and other station-based venues.",
   "type": "project",
   "license": "MIT",
@@ -20,13 +20,13 @@
   },
   "autoload": {
     "psr-4": {
-      "ArcadeOS\\": "src/"
+      "OpenArcade\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "ArcadeOS\\Tests\\": "tests/",
-      "ArcadeOS\\Tools\\": "tools/"
+      "OpenArcade\\Tests\\": "tests/",
+      "OpenArcade\\Tools\\": "tools/"
     }
   },
   "scripts": {
