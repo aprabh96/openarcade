@@ -9,6 +9,8 @@ First public release. Rebuilt from the system that ran the VR Lawrence arcade (7
 - Staff dashboard: day timeline per station, walk-ins, reschedule, cancel, settings for hours, prices, closures, stations and branding.
 - No double booking under concurrency, proven by a multi-process test.
 - Optional Square card payments with holds, idempotent charges, refunds and reconciliation.
+- Station app (SteamVR overlay: countdown, in-headset game menu, Steam and custom game launching)
+  and master controller (front desk start, add time, stop) for Windows, over the venue LAN.
 - Pusher removed: it was never wired to the station software. Sessions run over the venue LAN.
 - Email confirmations through SMTP, PHP `mail()` or a log file.
 - `bin/console`: install, migrate, admin:create, seed:demo, holds:release, privacy:purge, doctor.

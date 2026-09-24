@@ -46,3 +46,11 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows-apps:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - run: msbuild station/StationApp.sln -p:Configuration=Release -p:Platform=x64 -m
+      - run: msbuild master-controller/MasterController.sln -p:Configuration=Release -p:Platform=x64 -m

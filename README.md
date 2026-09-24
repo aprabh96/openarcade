@@ -6,11 +6,19 @@
 > form, and the Docker image is untested outside CI. Test with Square's sandbox before taking real
 > payments. Known gaps are listed under [Known limitations](#known-limitations).
 
-A self-hosted reservation system for VR arcades and any venue that rents numbered stations by
-the hour: escape rooms, racing sims, LAN cafes, rehearsal rooms. Customers book online, staff run
-the day from one screen, and the stations can react to what staff do. It is the system that ran
-the VR Lawrence arcade for four years, rebuilt so any venue can install it, with an AI agent
-doing the setup from a copy-paste prompt.
+An open-source operating system for VR arcades: online booking, a staff dashboard, and in-headset
+session control with a game launcher. Until now that last part meant paying a commercial arcade
+platform every month. This is the software that ran the VR Lawrence arcade for four years, cleaned
+up so any venue can run it, with AI agents doing the setup from copy-paste prompts.
+
+| Part | Runs on | What it does |
+| --- | --- | --- |
+| Booking system (`/`, PHP) | Any web host or Docker | Online booking with live availability, optional Square payments, email confirmations, staff dashboard |
+| Master controller (`master-controller/`) | Front desk Windows PC | Start, add time and stop sessions on one station or a group |
+| Station app (`station/`) | Each gaming PC | Countdown and game menu inside the headset (SteamVR overlay), launches Steam and custom games, ends the session when time is up |
+
+The two Windows apps talk over the venue's local network; see [`docs/in-venue.md`](docs/in-venue.md).
+Sessions are started by staff at the front desk, as on the commercial platforms.
 
 **Install it with your AI agent.** Paste this into Codex, Claude Code, Cursor or any coding agent
 that can reach your server or hosting account:
@@ -50,6 +58,9 @@ More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and
   under an idempotency key, with holds that expire, refunds when a slot is lost, and automatic
   reconciliation when a payment response never arrives.
 - **Email**: confirmations to the customer and the venue through SMTP or PHP `mail()`.
+- **In the headset** (Windows): a session countdown, a game menu with categories, one-click launch
+  of Steam and non-Steam games, automatic end of the session, and a front desk app to run every
+  station. See [`station/`](station/README.md) and [`master-controller/`](master-controller/README.md).
 - **Operations**: `php bin/console doctor --online` checks the whole installation the way a
   careful engineer would, and exits non-zero until every problem is fixed.
 

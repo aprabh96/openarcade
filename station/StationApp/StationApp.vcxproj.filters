@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="globals.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="window_proc.cpp" />
+    <ClCompile Include="session.cpp" />
+    <ClCompile Include="overlay.cpp" />
+    <ClCompile Include="logging.cpp" />
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="network.cpp" />
+    <ClCompile Include="steam_games.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="StationApp.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="globals.h" />
+    <ClInclude Include="logging.h" />
+    <ClInclude Include="network.h" />
+    <ClInclude Include="overlay.h" />
+    <ClInclude Include="session.h" />
+    <ClInclude Include="window_proc.h" />
+    <ClInclude Include="steam_games.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="StationApp.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico" />
+    <Image Include="StationApp.ico" />
+  </ItemGroup>
+</Project>

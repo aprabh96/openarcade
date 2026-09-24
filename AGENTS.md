@@ -23,6 +23,8 @@ staff run the day at `/admin/`, everything else is a JSON API under `/api/`.
 | `migrations/` | Plain SQL, applied in order by `bin/console migrate` |
 | `tests/` | PHPUnit: unit, integration (real MariaDB) and API (in-process HTTP) suites |
 | `docs/` | Architecture, API, real-time contract, deployment guides, `agent-prompts/` |
+| `station/` | Station app (C++, Windows, SteamVR overlay) for each gaming PC |
+| `master-controller/` | Front desk app (C++, Windows) that starts, extends and stops sessions over the LAN |
 | `tools/`, `bin/check-clean` | The clean-repository gate: no secrets or personal data may be committed |
 
 ## Setup agents: how to install this for a venue
@@ -50,6 +52,10 @@ Hard rules for setup agents:
   needed and why, and continue once they confirm.
 
 ## Contributor agents: how to change the code
+
+- The Windows apps build with `msbuild station/StationApp.sln` and
+  `msbuild master-controller/MasterController.sln` (Release, x64). Keep the LAN protocol in
+  `docs/in-venue.md` backwards compatible; stations and master controllers are updated one PC at a time.
 
 - Run the gate before every commit: `composer check` (style, PHPStan level 6, all tests,
   clean-repo scan, dependency audit). Docker users: `docker compose run --rm app composer check`.

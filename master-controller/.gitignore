@@ -1,0 +1,12 @@
+x64/
+Win32/
+Debug/
+Release/
+.vs/
+*.user
+*.aps
+*.log
+log.txt
+settings.ini
+game_cache/
+custom_games.json
