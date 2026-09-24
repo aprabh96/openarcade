@@ -18,7 +18,7 @@ staff run the day at `/admin/`, everything else is a JSON API under `/api/`.
 | `src/Domain/` | Booking rules: availability, station allocation, the locked reservation write path, payment holds |
 | `src/Http/` | Router, request/response, public and admin API controllers, rate limiting, security headers |
 | `src/Auth/` | Admin sessions, CSRF, booking tokens, login throttling |
-| `src/Payments/`, `src/Realtime/`, `src/Mail/` | Square, Pusher and email behind small interfaces with null/log implementations |
+| `src/Payments/`, `src/Mail/` | Square and email behind small interfaces with null/log implementations |
 | `src/Console/` | `bin/console` commands: install, migrate, doctor, holds:release, privacy:purge, seed:demo |
 | `migrations/` | Plain SQL, applied in order by `bin/console migrate` |
 | `tests/` | PHPUnit: unit, integration (real MariaDB) and API (in-process HTTP) suites |
@@ -39,8 +39,7 @@ staff run the day at `/admin/`, everything else is a JSON API under `/api/`.
 
 Hard rules for setup agents:
 
-- Never print, paste, log or commit secrets: `APP_KEY`, database passwords, Square tokens, Pusher
-  secrets, SMTP passwords, the admin password. Refer to them by variable name.
+- Never print, paste, log or commit secrets: `APP_KEY`, database passwords, Square tokens, SMTP passwords, the admin password. Refer to them by variable name.
 - Never disable, weaken or skip a check to get `doctor` green. Fix the cause.
 - Never touch customer data. Do not export, copy or read the `reservations` table beyond counts.
   Never run `seed:demo` on a live install; it refuses when real bookings exist.

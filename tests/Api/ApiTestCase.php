@@ -12,7 +12,6 @@ use ArcadeOS\Http\Services;
 use ArcadeOS\Mail\LogMailer;
 use ArcadeOS\Payments\NullGateway;
 use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Realtime\NullNotifier;
 use ArcadeOS\Support\Config;
 use ArcadeOS\Support\Env;
 use ArcadeOS\Support\FixedClock;
@@ -33,7 +32,6 @@ abstract class ApiTestCase extends TestCase
     protected PDO $pdo;
     protected FixedClock $clock;
     protected ArraySession $session;
-    protected NullNotifier $notifier;
     protected LogMailer $mailer;
     protected Logger $logger;
     protected Services $services;
@@ -65,10 +63,9 @@ abstract class ApiTestCase extends TestCase
             'SQUARE_APPLICATION_ID' => 'sandbox-app-id',
             'SQUARE_LOCATION_ID' => 'LOC123',
         ], false), dirname(__DIR__, 2));
-        $this->notifier = new NullNotifier();
         $this->mailer = new LogMailer();
         $this->logger = new Logger(null);
-        $this->services = Services::build($config, $this->pdo, $this->clock, $gateway, $this->notifier, $this->mailer, $this->logger);
+        $this->services = Services::build($config, $this->pdo, $this->clock, $gateway, $this->mailer, $this->logger);
         $this->app = new App($this->services);
     }
 

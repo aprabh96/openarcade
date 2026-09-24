@@ -10,16 +10,12 @@ use ArcadeOS\Mail\PhpMailerMailer;
 use ArcadeOS\Payments\NullGateway;
 use ArcadeOS\Payments\PaymentGateway;
 use ArcadeOS\Payments\SquareGateway;
-use ArcadeOS\Realtime\Notifier;
-use ArcadeOS\Realtime\NullNotifier;
-use ArcadeOS\Realtime\PusherNotifier;
-use ArcadeOS\Support\Clock;
 use ArcadeOS\Support\Config;
 use ArcadeOS\Support\CurlHttpClient;
 use ArcadeOS\Support\HttpClient;
 use ArcadeOS\Support\Logger;
 
-/** Picks the payment, real-time and mail implementations named in .env. */
+/** Picks the payment and mail implementations named in .env. */
 final class Drivers
 {
     public static function gateway(Config $config, Logger $logger, ?HttpClient $http = null): PaymentGateway
@@ -30,16 +26,6 @@ final class Drivers
         $square = $config->square();
 
         return new SquareGateway($http ?? new CurlHttpClient(), $square['accessToken'], $square['locationId'], $square['environment'], $logger);
-    }
-
-    public static function notifier(Config $config, Clock $clock, ?HttpClient $http = null): Notifier
-    {
-        if ($config->realtimeDriver() === 'none') {
-            return new NullNotifier();
-        }
-        $pusher = $config->pusher();
-
-        return new PusherNotifier($http ?? new CurlHttpClient(), $pusher['appId'], $pusher['key'], $pusher['secret'], $pusher['cluster'], $clock);
     }
 
     public static function mailer(Config $config, Logger $logger): Mailer

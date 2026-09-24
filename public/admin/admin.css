@@ -24,7 +24,6 @@
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border: 1px solid transparent; cursor: pointer; text-align: left; color: var(--ink);
 }
 .res.confirmed { background: #dcfce7; border-color: #86efac; }
-.res.confirmed.running { background: #bbf7d0; border-color: #16a34a; }
 .res.held { background: #ede9fe; border-color: #c4b5fd; }
 .res.cancelled, .res.expired, .res.payment_failed { background: #f3f4f6; border-color: #e5e7eb; color: var(--muted); text-decoration: line-through; }
 .res:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 40%, transparent); }
@@ -38,8 +37,6 @@
 }
 .panel-head { margin-bottom: 0.75rem; }
 .panel .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.panel .timer { padding: 0.6rem 0.75rem; border-radius: 8px; background: #f3f4f6; }
-.panel .timer.running { background: #dcfce7; }
 
 .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
 #hours-table input[type="time"] { width: auto; }

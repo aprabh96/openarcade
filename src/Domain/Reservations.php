@@ -16,8 +16,6 @@ use PDO;
 
 final class Reservations
 {
-    public const TIMER_ACTIONS = ['start', 'stop', 'extend'];
-
     public function __construct(
         private PDO $pdo,
         private ReservationRepository $reservations,
@@ -278,60 +276,6 @@ final class Reservations
     {
         if (!$this->reservations->transition($id, ['held', 'confirmed'], 'cancelled', $this->clock->now())) {
             throw new BookingRejected('wrong_status');
-        }
-    }
-
-    /**
-     * Session timer for a confirmed reservation. "start" runs for the given minutes (default: the booked
-     * duration), "extend" adds minutes to a running timer, "stop" ends it.
-     *
-     * @return array{status:string,end_utc:?string,minutes:int}
-     * @throws BookingRejected
-     */
-    public function setTimer(int $id, string $action, ?int $minutes): array
-    {
-        if (!in_array($action, self::TIMER_ACTIONS, true)) {
-            throw new BookingRejected('validation_failed', ['action' => 'Must be start, stop or extend.']);
-        }
-        if ($minutes !== null && ($minutes < 1 || $minutes > 1440)) {
-            throw new BookingRejected('validation_failed', ['minutes' => 'Must be from 1 to 1440.']);
-        }
-        $tz = $this->settings->load()->tz();
-        $row = $this->reservations->findRow($id, $tz);
-        if ($row === null) {
-            throw new BookingRejected('not_found');
-        }
-        if ($row['status'] !== 'confirmed') {
-            throw new BookingRejected('wrong_status');
-        }
-        $now = $this->clock->now();
-        $running = $row['timer_status'] === 'running';
-        switch ($action) {
-            case 'start':
-                if ($running) {
-                    throw new BookingRejected('wrong_status');
-                }
-                $minutes ??= (int) $row['duration_minutes'];
-                $end = $now->modify("+{$minutes} minutes");
-                $this->reservations->updateTimer($id, 'running', $end->format('Y-m-d H:i:s'), $now);
-
-                return ['status' => 'running', 'end_utc' => $end->format('Y-m-d H:i:s'), 'minutes' => $minutes];
-            case 'extend':
-                if (!$running || $minutes === null) {
-                    throw new BookingRejected($running ? 'validation_failed' : 'wrong_status', $running ? ['minutes' => 'Minutes are required.'] : []);
-                }
-                $currentEnd = new \DateTimeImmutable((string) $row['timer_end_utc'], new \DateTimeZone('UTC'));
-                $end = max($currentEnd, $now)->modify("+{$minutes} minutes");
-                $this->reservations->updateTimer($id, 'running', $end->format('Y-m-d H:i:s'), $now);
-
-                return ['status' => 'running', 'end_utc' => $end->format('Y-m-d H:i:s'), 'minutes' => $minutes];
-            default:
-                if (!$running) {
-                    throw new BookingRejected('wrong_status');
-                }
-                $this->reservations->updateTimer($id, 'stopped', null, $now);
-
-                return ['status' => 'stopped', 'end_utc' => null, 'minutes' => 0];
         }
     }
 

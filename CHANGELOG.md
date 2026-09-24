@@ -6,11 +6,10 @@ First public release. Rebuilt from the system that ran the VR Lawrence arcade (7
 2021-2025), with every venue-specific value moved into settings.
 
 - Customer booking page with server-side availability, station allocation and pricing.
-- Staff dashboard: day timeline per station, walk-ins, reschedule, cancel, session timers,
-  station commands, settings for hours, prices, closures, stations and branding.
+- Staff dashboard: day timeline per station, walk-ins, reschedule, cancel, settings for hours, prices, closures, stations and branding.
 - No double booking under concurrency, proven by a multi-process test.
 - Optional Square card payments with holds, idempotent charges, refunds and reconciliation.
-- Optional Pusher station commands (`START_SESSION`, `STOP_SESSION`, `ADD_TIME`).
+- Pusher removed: it was never wired to the station software. Sessions run over the venue LAN.
 - Email confirmations through SMTP, PHP `mail()` or a log file.
 - `bin/console`: install, migrate, admin:create, seed:demo, holds:release, privacy:purge, doctor.
 - `setup.php` one-time installer for shared hosting; `doctor --online` go-live check.

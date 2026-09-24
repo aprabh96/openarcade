@@ -40,7 +40,6 @@ final class Doctor
         $this->checkStorage();
         $this->checkDatabase();
         $this->checkPayment();
-        $this->checkRealtime();
         $this->checkMail();
         $this->checkWeb();
 
@@ -175,22 +174,6 @@ final class Doctor
             $this->add('payment.square.credentials', $response['status'] === 200 ? 'pass' : 'fail', $response['status'] === 200 ? 'token and location verified' : "Square answered HTTP {$response['status']}; check SQUARE_ACCESS_TOKEN, SQUARE_LOCATION_ID and SQUARE_ENV.");
         } catch (\RuntimeException $error) {
             $this->add('payment.square.credentials', 'fail', 'Could not reach Square: ' . $error->getMessage());
-        }
-    }
-
-    private function checkRealtime(): void
-    {
-        try {
-            $driver = $this->config->realtimeDriver();
-            if ($driver === 'none') {
-                $this->add('realtime.driver', 'pass', 'none (no station commands; fine without station clients)');
-
-                return;
-            }
-            $this->config->pusher();
-            $this->add('realtime.driver', 'pass', 'pusher configured');
-        } catch (\RuntimeException $error) {
-            $this->add('realtime.driver', 'fail', $error->getMessage());
         }
     }
 

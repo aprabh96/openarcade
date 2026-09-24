@@ -1,7 +1,7 @@
 # Architecture
 
 One install per venue. PHP 8.1+ with `strict_types` everywhere, PDO against MySQL or MariaDB, no
-framework, no front-end build. The runtime dependency is PHPMailer; Square and Pusher are called
+framework, no front-end build. The runtime dependency is PHPMailer; Square is called
 over plain HTTPS through one small `HttpClient` interface so they can be faked in tests.
 
 ## Layers
@@ -13,14 +13,13 @@ src/Auth/         AdminAuth (sessions), Csrf, BookingToken, LoginThrottle
 src/Domain/       Availability, StationAllocator, Reservations (the write path), BookingFlow (booking + payment + email)
 src/Settings/     VenueSettings (validated) and its repository
 src/Payments/     PaymentGateway: NullGateway, SquareGateway
-src/Realtime/     Notifier: NullNotifier, PusherNotifier
 src/Mail/         Mailer: LogMailer, PhpMailerMailer; ReservationMail templates
 src/Db/           Connection (UTC session), Migrator, Transaction (deadlock retry)
 src/Console/      Application (commands), Installer, Doctor
 ```
 
 Controllers validate input and call domain services. Domain services never read the request or
-echo; they receive their collaborators (clock, repositories, gateway, notifier, mailer) through
+echo; they receive their collaborators (clock, repositories, gateway, mailer) through
 constructors, which is why the whole API can be tested in-process with a fixed clock.
 
 ## The no-double-booking guarantee

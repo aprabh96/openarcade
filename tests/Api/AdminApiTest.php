@@ -115,46 +115,6 @@ final class AdminApiTest extends ApiTestCase
         self::assertSame(2, array_column($free['slots'], 'free', 'start_minute')[600]);
     }
 
-    public function testTimerSendsStationCommandsForEveryStation(): void
-    {
-        $mine = $this->services->reservations->create(VenueFixture::request('2026-09-22', 600, 60, 2), BookingRules::customer(false));
-        $csrf = $this->signIn();
-
-        $started = $this->adminRequest($csrf, 'POST', "/api/admin/reservations/{$mine->id}/timer", ['action' => 'start']);
-        self::assertSame(200, $started->status, $started->body);
-        $data = $this->json($started);
-        self::assertSame('running', $data['timer']['status']);
-        self::assertSame('2026-09-21 15:00:00', $data['timer']['end_utc']);
-        self::assertSame('disabled', $data['delivery']);
-        self::assertSame(
-            [['station' => 1, 'command' => 'START_SESSION', 'value' => 60], ['station' => 2, 'command' => 'START_SESSION', 'value' => 60]],
-            $this->notifier->sent
-        );
-
-        self::assertSame(409, $this->adminRequest($csrf, 'POST', "/api/admin/reservations/{$mine->id}/timer", ['action' => 'start'])->status);
-
-        $extended = $this->json($this->adminRequest($csrf, 'POST', "/api/admin/reservations/{$mine->id}/timer", ['action' => 'extend', 'minutes' => 15]));
-        self::assertSame('2026-09-21 15:15:00', $extended['timer']['end_utc']);
-        self::assertSame('ADD_TIME', $this->notifier->sent[2]['command']);
-
-        $stopped = $this->json($this->adminRequest($csrf, 'POST', "/api/admin/reservations/{$mine->id}/timer", ['action' => 'stop']));
-        self::assertSame('stopped', $stopped['timer']['status']);
-        self::assertSame('STOP_SESSION', $this->notifier->sent[4]['command']);
-
-        self::assertSame(422, $this->adminRequest($csrf, 'POST', "/api/admin/reservations/{$mine->id}/timer", ['action' => 'dance'])->status);
-    }
-
-    public function testStationCommandValidation(): void
-    {
-        $csrf = $this->signIn();
-        self::assertSame(422, $this->adminRequest($csrf, 'POST', '/api/admin/stations/1/command', ['command' => 'REBOOT', 'value' => 0])->status);
-        self::assertSame(422, $this->adminRequest($csrf, 'POST', '/api/admin/stations/1/command', ['command' => 'ADD_TIME', 'value' => -5])->status);
-        self::assertSame(404, $this->adminRequest($csrf, 'POST', '/api/admin/stations/9/command', ['command' => 'ADD_TIME', 'value' => 5])->status);
-        $ok = $this->adminRequest($csrf, 'POST', '/api/admin/stations/2/command', ['command' => 'add_time', 'value' => 5]);
-        self::assertSame(200, $ok->status, $ok->body);
-        self::assertSame([['station' => 2, 'command' => 'ADD_TIME', 'value' => 5]], $this->notifier->sent);
-    }
-
     public function testConfigurationRoundTrips(): void
     {
         $csrf = $this->signIn();

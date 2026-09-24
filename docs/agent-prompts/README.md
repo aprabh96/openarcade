@@ -14,7 +14,6 @@ run. The agent reads `AGENTS.md`, asks you a few questions, does the work, and p
 | Put the booking page on an existing website | [embed-booking-page.md](embed-booking-page.md) |
 | Final checks before taking real bookings | [go-live-checklist.md](go-live-checklist.md) |
 | Update to a newer release | [upgrade.md](upgrade.md) |
-| Make the stations react to the dashboard | [connect-stations.md](connect-stations.md) |
 
 Before pasting a prompt, replace anything in `<angle brackets>`. Never paste passwords or API
 tokens into a chat with an agent; put them in `.env` yourself when the agent asks, or type them

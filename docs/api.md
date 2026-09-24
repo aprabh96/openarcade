@@ -9,7 +9,7 @@ Error codes: `validation_failed` (422, `details.fields` maps field to message), 
 `method_not_allowed` (405), `slot_unavailable` (409), `wrong_status` (409), `hold_expired` (409),
 `payment_declined` (402), `payment_unknown` (503), `payment_unavailable` (503, Square refused the
 request: check the Square settings), `booking_expired` / `cross_site` (403), `request_used` (409), `rate_limited` / `too_many_attempts` (429),
-`delivery_failed` (502), `server_error` (500). Booking-rule refusals use their rule name with 422:
+`server_error` (500). Booking-rule refusals use their rule name with 422:
 `date_in_past`, `too_far_ahead`, `closed`, `outside_hours`, `off_grid`, `too_soon`,
 `duration_not_offered`, `invalid_station_count`.
 
@@ -62,8 +62,6 @@ client for 15 minutes; 20 failures from a client, or 100 for a username from any
 | `POST /api/admin/reservations` | booking fields, optional `complimentary` | 201 with the row; staff bookings may be off-grid, outside hours, inside the lead time, and free of charge, but never overlap |
 | `PATCH /api/admin/reservations/{id}` | any booking fields | Reschedules under the same lock; amounts are recomputed when the length or station count changes |
 | `POST /api/admin/reservations/{id}/cancel` | | Frees the stations |
-| `POST /api/admin/reservations/{id}/timer` | `action` start / extend / stop, optional `minutes` | `{timer, delivery: sent / disabled / failed, reservation}` and sends a station command per station |
-| `POST /api/admin/stations/{number}/command` | `command`, `value` | Sends one command; 502 when delivery fails |
 | `GET`/`PUT /api/admin/settings` | `{settings: {key: value}}` | Venue settings; unknown keys and invalid values come back as field errors |
 | `GET`/`PUT /api/admin/hours` | `{weekdays: [{weekday, open_minute, close_minute, closed}]}` | Weekly hours (0 = Sunday) |
 | `GET`/`PUT /api/admin/prices` | `{set: [{weekday, duration_minutes, price_cents}], remove: [{weekday, duration_minutes}]}` | Price rows |
@@ -73,7 +71,7 @@ client for 15 minutes; 20 failures from a client, or 100 for a username from any
 A reservation row: `id, uuid, confirmation_code, status (held, confirmed, cancelled, payment_failed, expired),
 first_name, last_name, email, phone, comments, date, start_minute, end_minute, duration_minutes, station_count,
 stations, subtotal_cents, tax_cents, total_cents, currency, payment_provider, payment_id, hold_expires_at,
-timer_status (not_started, running, stopped), timer_end_utc, created_by, created_at, updated_at`.
+created_by, created_at, updated_at`.
 
 ## Security headers
 

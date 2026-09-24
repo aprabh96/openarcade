@@ -20,7 +20,7 @@ and `TRUST_PROXY=true`, and restart (`docker compose up -d`). The proxy must pas
 `X-Forwarded-Proto`. Without `TRUST_PROXY`, every visitor looks like the proxy and shares one rate
 limit. To expose the port directly on a trusted network instead, set `APP_BIND=0.0.0.0`.
 
-`docker-compose.yml` reads `.env` for `APP_*`, `PAYMENT_*`, `SQUARE_*`, `REALTIME_*`, `PUSHER_*`,
+`docker-compose.yml` reads `.env` for `APP_*`, `PAYMENT_*`, `SQUARE_*`,
 `MAIL_*`, `SMTP_*`, `EMBED_ALLOWED_ORIGINS` and `DB_PASSWORD`; the database host is always the
 `db` service. Data lives in the `dbdata` volume. Back it up with:
 

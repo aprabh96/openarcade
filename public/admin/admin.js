@@ -137,7 +137,7 @@ function renderTimeline() {
       const width = ((r.end_minute - r.start_minute) / span) * 100;
       track.append(el('button', {
         type: 'button',
-        class: `res ${r.status} ${r.timer_status === 'running' ? 'running' : ''}`,
+        class: `res ${r.status}`,
         style: `left:${Math.max(0, left)}%;width:${Math.max(1.5, Math.min(100 - left, width))}%`,
         title: `${r.first_name} ${r.last_name}, ${fmtRange(r.start_minute, r.duration_minutes)}`,
         onclick: () => openPanel(r.id),
@@ -224,18 +224,6 @@ function renderPanel() {
   for (const [k, v] of facts) dl.append(el('dt', { text: k }), el('dd', { text: v }));
   body.append(dl);
 
-  if (r.status === 'confirmed') {
-    const running = r.timer_status === 'running';
-    body.append(el('div', { class: `timer ${running ? 'running' : ''}` }, [
-      el('strong', { text: running ? `Session running until ${r.timer_end_utc} UTC` : r.timer_status === 'stopped' ? 'Session ended' : 'Session not started' }),
-      el('div', { class: 'actions', style: 'margin-top:0.5rem' }, running
-        ? [
-          timerButton(r, 'extend', 5, '+5 min'), timerButton(r, 'extend', 10, '+10 min'), timerButton(r, 'extend', 15, '+15 min'),
-          timerButton(r, 'stop', null, 'Stop', 'danger'),
-        ]
-        : [timerButton(r, 'start', null, `Start ${fmtDuration(r.duration_minutes)}`), timerButton(r, 'start', 15, 'Start 15 min')]),
-    ]));
-  }
   if (r.status === 'confirmed' || r.status === 'held') {
     body.append(el('div', { class: 'actions' }, [
       el('button', { type: 'button', class: 'btn small secondary', text: 'Edit', onclick: () => { state.panelMode = 'edit'; renderPanel(); } }),
@@ -244,17 +232,6 @@ function renderPanel() {
   }
 }
 
-function timerButton(r, action, minutes, label, kind = 'secondary') {
-  return el('button', { type: 'button', class: `btn small ${kind}`, text: label, onclick: async () => {
-    try {
-      const data = await call('POST', `/api/admin/reservations/${r.id}/timer`, { action, minutes });
-      flash(data.delivery === 'sent' ? 'Station command sent.' : data.delivery === 'failed' ? 'Timer saved, but the station could not be reached.' : 'Timer saved (no station link configured).', data.delivery === 'failed' ? 'error' : 'success');
-      await loadDay();
-      state.selected = state.day.reservations.find((x) => x.id === r.id) || null;
-      renderPanel();
-    } catch (error) { flash(error.message, 'error'); }
-  } });
-}
 
 async function cancelReservation(r) {
   if (!window.confirm(`Cancel ${r.first_name} ${r.last_name}'s booking at ${fmtTime(r.start_minute)}?`)) return;

@@ -10,7 +10,7 @@ Check that my booking system at <https://booking.example.com> is ready for real 
 5. Cron: holds:release every 5 minutes and privacy:purge monthly are installed and have run at least once: run php bin/console holds:release by hand and check it prints a "Holds:" line, and check the cron output (storage/logs/cron.log in the Docker guide).
 6. Backups: the database is backed up daily by the host or by a cron job using mysqldump. Tell me where the backups go.
 7. Hours, prices, stations, closures and the notification email are what I told you in the configuration step. Open /book/ as a customer and confirm one weekday and one weekend day look right.
-8. The dashboard timer works: start a session on a test booking and stop it. If REALTIME_DRIVER=pusher, confirm a station client received the command.
+8. Make a walk-in booking in /admin/, move it to another time, then cancel it.
 9. Private files are not reachable: /.env, /src/, /storage/, /migrations/ return 403 or 404.
 10. Tell me the two URLs to bookmark and the admin username. Never tell me the password back.
 ```

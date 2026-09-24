@@ -69,8 +69,6 @@ final class App
         $this->router->add('POST', '/api/admin/reservations', fn (Request $r): Response => $admin->createReservation($r, $this->guard($r)));
         $this->router->add('PATCH', '/api/admin/reservations/{id}', fn (Request $r, array $p): Response => $admin->updateReservation($r, self::id($p), $this->guard($r)));
         $this->router->add('POST', '/api/admin/reservations/{id}/cancel', fn (Request $r, array $p): Response => $admin->cancelReservation($r, self::id($p), $this->guard($r)));
-        $this->router->add('POST', '/api/admin/reservations/{id}/timer', fn (Request $r, array $p): Response => $admin->timer($r, self::id($p), $this->guard($r)));
-        $this->router->add('POST', '/api/admin/stations/{number}/command', fn (Request $r, array $p): Response => $admin->stationCommand($r, self::id($p, 'number'), $this->guard($r)));
 
         foreach (['settings', 'hours', 'prices', 'closures', 'stations'] as $section) {
             $getter = 'get' . ucfirst($section);

@@ -10,7 +10,6 @@ use ArcadeOS\Domain\BookingRejected;
 use ArcadeOS\Domain\BookingRequest;
 use ArcadeOS\Domain\BookingRules;
 use ArcadeOS\Domain\HoursRepository;
-use ArcadeOS\Realtime\Notifier;
 use ArcadeOS\Settings\VenueSettings;
 use ArcadeOS\Support\IpHash;
 
@@ -104,46 +103,6 @@ final class AdminApi
         $this->s->reservations->cancel($id);
 
         return Response::json(['reservation' => $this->row($id)]);
-    }
-
-    public function timer(Request $request, int $id, AdminUser $user): Response
-    {
-        self::assertJson($request);
-        $action = $request->string('action') ?? '';
-        $minutes = $request->int('minutes');
-        $timer = $this->s->reservations->setTimer($id, $action, $minutes);
-        $row = $this->row($id);
-
-        $command = match ($action) {
-            'start' => 'START_SESSION',
-            'extend' => 'ADD_TIME',
-            default => 'STOP_SESSION',
-        };
-        $delivery = $this->deliver($row['stations'], $command, $timer['minutes']);
-
-        return Response::json(['timer' => $timer, 'delivery' => $delivery, 'reservation' => $row]);
-    }
-
-    public function stationCommand(Request $request, int $number, AdminUser $user): Response
-    {
-        self::assertJson($request);
-        $command = strtoupper($request->string('command') ?? '');
-        if (!in_array($command, Notifier::COMMANDS, true)) {
-            throw ApiError::validation(['command' => 'Must be one of ' . implode(', ', Notifier::COMMANDS) . '.']);
-        }
-        $value = $request->int('value');
-        if ($value === null || $value < 0 || $value > 1440) {
-            throw ApiError::validation(['value' => 'Must be a whole number of minutes from 0 to 1440.']);
-        }
-        if (!in_array($number, $this->s->stations->activeNumbersById(), true)) {
-            throw ApiError::notFound('No such station.');
-        }
-        $delivery = $this->deliver([$number], $command, $value);
-        if ($delivery === 'failed') {
-            throw new ApiError('delivery_failed', 'The station could not be reached. Check the real-time settings.', 502);
-        }
-
-        return Response::json(['station' => $number, 'command' => $command, 'value' => $value, 'delivery' => $delivery]);
     }
 
     // ----------------------------------------------------------------- configuration
@@ -329,27 +288,6 @@ final class AdminApi
     private static function hoursView(?\ArcadeOS\Domain\DayHours $hours): ?array
     {
         return $hours === null ? null : ['open_minute' => $hours->openMinute, 'close_minute' => $hours->closeMinute];
-    }
-
-    /**
-     * Sends a command to each station number; delivery problems are reported, never thrown, so a
-     * timer change is saved even when the real-time service is down.
-     *
-     * @param int[] $stationNumbers
-     */
-    private function deliver(array $stationNumbers, string $command, int|float $value): string
-    {
-        try {
-            foreach ($stationNumbers as $number) {
-                $this->s->notifier->stationCommand($number, $command, $value);
-            }
-        } catch (\RuntimeException $error) {
-            $this->s->logger->warning('station command delivery failed', ['command' => $command, 'error' => $error->getMessage()]);
-
-            return 'failed';
-        }
-
-        return $this->s->notifier->enabled() ? 'sent' : 'disabled';
     }
 
     /**

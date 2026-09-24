@@ -184,12 +184,6 @@ final class ReservationRepository
         $this->replaceStations($id, $stationIds);
     }
 
-    public function updateTimer(int $id, string $timerStatus, ?string $timerEndUtc, \DateTimeImmutable $nowUtc): void
-    {
-        $this->pdo->prepare('UPDATE reservations SET timer_status = ?, timer_end_utc = ?, updated_at = ? WHERE id = ?')
-            ->execute([$timerStatus, $timerEndUtc, $nowUtc->format('Y-m-d H:i:s'), $id]);
-    }
-
     /**
      * @param string[] $fromStatuses
      * @return bool true when a row changed
@@ -316,8 +310,6 @@ final class ReservationRepository
                 'payment_provider' => (string) $row['payment_provider'],
                 'payment_id' => $row['payment_id'] === null ? null : (string) $row['payment_id'],
                 'hold_expires_at' => $row['hold_expires_at'] === null ? null : (string) $row['hold_expires_at'],
-                'timer_status' => (string) $row['timer_status'],
-                'timer_end_utc' => $row['timer_end_utc'] === null ? null : (string) $row['timer_end_utc'],
                 'created_by' => (string) $row['created_by'],
                 'created_at' => (string) $row['created_at'],
                 'updated_at' => (string) $row['updated_at'],

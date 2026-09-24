@@ -79,23 +79,6 @@ final class Config
         ];
     }
 
-    /** "none" or "pusher". */
-    public function realtimeDriver(): string
-    {
-        return $this->oneOf('REALTIME_DRIVER', ['none', 'pusher'], 'none');
-    }
-
-    /** @return array{appId:string,key:string,secret:string,cluster:string} */
-    public function pusher(): array
-    {
-        return [
-            'appId' => $this->env->require('PUSHER_APP_ID'),
-            'key' => $this->env->require('PUSHER_KEY'),
-            'secret' => $this->env->require('PUSHER_SECRET'),
-            'cluster' => $this->env->get('PUSHER_CLUSTER', 'us2') ?? 'us2',
-        ];
-    }
-
     /** "log", "mail" or "smtp". */
     public function mailDriver(): string
     {

@@ -15,7 +15,6 @@ use ArcadeOS\Domain\Reservations;
 use ArcadeOS\Domain\StationRepository;
 use ArcadeOS\Mail\Mailer;
 use ArcadeOS\Payments\PaymentGateway;
-use ArcadeOS\Realtime\Notifier;
 use ArcadeOS\Settings\SettingsRepository;
 use ArcadeOS\Support\Clock;
 use ArcadeOS\Support\Config;
@@ -37,7 +36,6 @@ final class Services
         public readonly ReservationRepository $reservationRepository,
         public readonly Reservations $reservations,
         public readonly PaymentGateway $gateway,
-        public readonly Notifier $notifier,
         public readonly Mailer $mailer,
         public readonly BookingFlow $flow,
         public readonly BookingToken $bookingToken,
@@ -52,13 +50,11 @@ final class Services
         PDO $pdo,
         Clock $clock,
         ?PaymentGateway $gateway = null,
-        ?Notifier $notifier = null,
         ?Mailer $mailer = null,
         ?Logger $logger = null,
     ): self {
         $logger ??= new Logger($config->rootDir() . '/storage/logs/app.log');
         $gateway ??= Drivers::gateway($config, $logger);
-        $notifier ??= Drivers::notifier($config, $clock);
         $mailer ??= Drivers::mailer($config, $logger);
 
         $settings = new SettingsRepository($pdo);
@@ -80,7 +76,6 @@ final class Services
             $repository,
             $reservations,
             $gateway,
-            $notifier,
             $mailer,
             new BookingFlow($reservations, $repository, $settings, $gateway, $mailer, $logger),
             new BookingToken($config->appKey(), $clock),

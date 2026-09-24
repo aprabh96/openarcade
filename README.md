@@ -2,7 +2,7 @@
 
 > **Early release.** This is a working head start, not a finished product. It ran a real arcade, it
 > has 147 automated tests, and the money paths (holds, idempotent charges, refunds, reconciliation)
-> are tested. It has not yet been run against live Square, Pusher and SMTP accounts in this
+> are tested. It has not yet been run against live Square and SMTP accounts in this
 > form, and the Docker image is untested outside CI. Test with Square's sandbox before taking real
 > payments. Known gaps are listed under [Known limitations](#known-limitations).
 
@@ -30,7 +30,7 @@ More prompts, for connecting Square, embedding on a website, going live and upgr
 | Customer booking page | Staff dashboard |
 | --- | --- |
 | ![Picking a time](docs/screenshots/booking-times.png) | ![Day view with a lane per station](docs/screenshots/dashboard-day.png) |
-| ![Booking confirmed](docs/screenshots/booking-confirmed.png) | ![Reservation panel with session timer](docs/screenshots/dashboard-reservation.png) |
+| ![Booking confirmed](docs/screenshots/booking-confirmed.png) | ![Reservation panel](docs/screenshots/dashboard-reservation.png) |
 
 More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and settings. All names are demo data.
 
@@ -40,7 +40,7 @@ More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and
   contact details, optional card payment, confirmation with a code and an email. Embeddable on
   any website.
 - **Staff dashboard** (`/admin/`): a day timeline with one lane per station, walk-ins, reschedule,
-  cancel, session timers with +5/+10/+15, station commands, and settings for hours, prices,
+  cancel, and settings for hours, prices,
   closures, special hours, stations and branding.
 - **No double bookings.** The server decides availability and picks the stations inside a locked
   transaction; a multi-process test proves that eight simultaneous customers get exactly one
@@ -49,9 +49,6 @@ More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and
 - **Payments** (optional): Square card payments in the browser, charged with a server-side amount
   under an idempotency key, with holds that expire, refunds when a slot is lost, and automatic
   reconciliation when a payment response never arrives.
-- **Stations** (optional): `START_SESSION`, `ADD_TIME` and `STOP_SESSION` messages to each station
-  over Pusher, so a countdown can appear in the headset. Contract in
-  [`docs/realtime-contract.md`](docs/realtime-contract.md).
 - **Email**: confirmations to the customer and the venue through SMTP or PHP `mail()`.
 - **Operations**: `php bin/console doctor --online` checks the whole installation the way a
   careful engineer would, and exits non-zero until every problem is fixed.
@@ -78,8 +75,7 @@ Then open `http://localhost:8088/book/` and `http://localhost:8088/admin/`.
 ## Configuration
 
 Secrets and environment facts live in `.env` (see [`.env.example`](.env.example)): the database,
-`APP_KEY`, `APP_URL`, `PAYMENT_MODE` (`none` or `square`) and Square keys, `REALTIME_DRIVER`
-(`none` or `pusher`) and Pusher keys, `MAIL_DRIVER` (`log`, `mail`, `smtp`) and SMTP details,
+`APP_KEY`, `APP_URL`, `PAYMENT_MODE` (`none` or `square`) and Square keys, `MAIL_DRIVER` (`log`, `mail`, `smtp`) and SMTP details,
 `EMBED_ALLOWED_ORIGINS`, `TRUST_PROXY`. Everything about the venue lives in the dashboard: name,
 timezone, currency, tax, stations, hours, prices, buffer, lead time, branding.
 
@@ -117,10 +113,10 @@ Contributor rules for people and agents are in [`AGENTS.md`](AGENTS.md).
 
 - One venue per install, one admin role (every staff account can do everything).
 - Refunds for a changed booking are done in the Square dashboard; the dashboard does not issue them.
-- Session timers can be extended past the booked end without warning about the next booking.
-- Timer and station commands are not locked against two staff members clicking at the same instant.
 - The staff dashboard uses the browser's clock for "today", so it should run in the venue's timezone.
-- Live Square, Pusher and SMTP integrations are covered by tests against fakes only so far.
+- Live Square and SMTP integrations are covered by tests against fakes only so far.
+- The booking system and the in-venue session control (master controller and station apps) are
+  separate: staff start each session at the front desk, as with the commercial platforms.
 
 Issues and pull requests are welcome; see `AGENTS.md` for the rules the tests enforce.
 
