@@ -27,11 +27,18 @@ automatically when a booking begins is a possible future addition.
 ## Protocol
 
 Plain text over TCP. The master controller listens on port **12345**; every station connects to it,
-keeps the connection open, and reconnects by itself after a drop.
+keeps the connection open, and retries every 5 seconds after a drop, so stations come back by
+themselves when the front desk PC restarts. A running session survives a restart of the station
+app too: the end time is saved in `settings.ini` and the countdown continues.
+
+Port 12345 is fixed. Check that nothing else on the front desk PC uses it
+(`netstat -ano | findstr :12345`); if another program listens there, stations connect to it instead.
 
 | Direction | Message | Meaning |
 | --- | --- | --- |
 | station to master | `STATION_NAME <name>` | Sent on connect so the master can list the station |
+| station to master | `SESSION_STARTED <minutes>` | A session has started |
+| station to master | `TIME_LEFT <seconds>` | Sent every second while a session runs |
 | station to master | `SESSION_STOPPED` | The session ended (time up or stopped); the station is free |
 | station to master | `STATION_DISCONNECTING` | Sent on orderly shutdown |
 | master to station | `START_SESSION <minutes>` | Start a session of that many minutes and show the overlay |

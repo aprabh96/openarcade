@@ -23,13 +23,21 @@ arcade can spend that money on headsets and games instead. *(Prabh Arora)*
 
 > **Early release.** This is a working head start, not a finished product. The booking system has
 > 142 automated tests, and its money paths (holds, idempotent charges, refunds, reconciliation) are
-> tested. The Windows apps are the code that ran the arcade; they compile in CI but have not been
-> run in a headset since this cleanup. Try everything on a test setup, and use Square's sandbox,
-> before real customers. See [Known limitations](#known-limitations).
+> tested. The station app has been run end to end against SteamVR's
+> virtual headset (the screenshots below), but not on a physical headset since this cleanup, and the
+> booking system has not yet been run against live Square and SMTP accounts. Try everything on a test
+> setup and with Square's sandbox before real customers. See [Known limitations](#known-limitations).
 
 ## What guests get in the headset
 
 The station app runs on every gaming PC and adds your arcade's own tab to the SteamVR dashboard.
+
+| During a session: game menu and countdown | Between sessions: your branded waiting screen |
+| --- | --- |
+| ![In-headset game menu with categories, cover art, Start Game and the time left](docs/screenshots/headset-timer.gif) | ![Waiting screen with a looping logo video](docs/screenshots/headset-waiting.png) |
+
+<sub>Real captures of the station app inside SteamVR (virtual headset). "Orbit VR" is a demo venue; the
+menu lists whatever games are installed on the PC.</sub>
 
 - **A game menu of your own.** Your games, sorted into categories you choose (Action, Kids, Horror,
   Racing and so on). Selecting one shows its cover art and description.
@@ -98,7 +106,7 @@ and the READMEs in [`station/`](station/README.md) and [`master-controller/`](ma
 | ![Booking confirmed](docs/screenshots/booking-confirmed.png) | ![Reservation panel](docs/screenshots/dashboard-reservation.png) |
 
 More in [`docs/screenshots/`](docs/screenshots/), including the phone layout and settings. All names
-are demo data. Screenshots of the in-headset menu will follow once a venue captures them.
+are demo data.
 
 ## More details
 
@@ -182,8 +190,11 @@ Contributor rules for people and agents are in [`AGENTS.md`](AGENTS.md).
   game while guests play.
 - The front desk to station protocol has no password; keep it on the venue's private network
   ([`docs/in-venue.md`](docs/in-venue.md#security)).
-- The Windows apps are the code that ran the arcade, renamed and cleaned up; they compile, but have
-  not been run in a headset since. Reports from the first venues are very welcome.
+- The Windows apps are the code that ran the arcade, renamed and cleaned up. The station app has been
+  run against SteamVR's virtual headset, not yet on a physical headset since the cleanup. Reports from
+  the first venues are very welcome.
+- The front desk port is fixed at 12345. If another program on the front desk PC already uses it,
+  stations cannot connect ([`docs/in-venue.md`](docs/in-venue.md#protocol)).
 
 Issues and pull requests are welcome; see `AGENTS.md` for the rules the tests enforce.
 

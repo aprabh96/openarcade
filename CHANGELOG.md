@@ -11,6 +11,8 @@ First public release. Rebuilt from the system that ran the VR Lawrence arcade (7
 - Optional Square card payments with holds, idempotent charges, refunds and reconciliation.
 - Station app (SteamVR overlay: countdown, in-headset game menu, Steam and custom game launching)
   and master controller (front desk start, add time, stop) for Windows, over the venue LAN.
+- Station app: reconnect to the master controller every 5 seconds after a drop (the reconnect
+  handler existed but its timer was never started).
 - Pusher removed: it was never wired to the station software. Sessions run over the venue LAN.
 - Email confirmations through SMTP, PHP `mail()` or a log file.
 - `bin/console`: install, migrate, admin:create, seed:demo, holds:release, privacy:purge, doctor.

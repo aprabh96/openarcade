@@ -588,6 +588,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SetTimer(hWnd, STEAMVR_PERSISTENT_CHECK_TIMER_ID, STEAMVR_PERSISTENT_CHECK_INTERVAL, NULL);
         Log("WndProc: Persistent SteamVR Check Timer (ID=" + std::to_string(STEAMVR_PERSISTENT_CHECK_TIMER_ID) + ") started.");
 
+        // Reconnect to the master controller every 5 seconds while disconnected (handled in WM_TIMER, ID 4),
+        // so stations come back by themselves when the front desk PC restarts.
+        SetTimer(hWnd, 4, 5000, NULL);
+
         break;
     }
     case WM_COMMAND:
